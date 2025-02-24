@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="xnTheme" parent="XNApp.Theme.DarkPurple">
+        <item name="dropDownListViewStyle">@style/xnSpinnerStyle</item>
+        <item name="searchViewStyle">@style/xnSearchViewStyle</item>
+    </style>
+    <style name="xnSpinnerStyle" parent="android:Widget.ListView.DropDown">
+        <item name="textFillColor">@color/purple_700</item>
+        <item name="android:textAlignment">center</item>
+        <item name="divider">@color/purple_700</item>
+        <item name="android:dividerHeight">1dp</item>
+    </style>
+    <style name="xnSearchViewStyle" parent="android:Widget.Material.SearchView">
+        <item name="background">@drawable/search_view</item>
+        <item name="backgroundTint">@color/blue_500</item>
+        <item name="queryBackground">@color/transparent</item>
+        <item name="submitBackground">@color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+
+    <PreferenceCategory
+        app:title="初始值设置"
+    >
+        <ListPreference
+            app:key="searchMod"
+            app:title="首要搜索模式"
+            app:summary="普通：用书名搜索/精确：用书目代码搜索"
+            app:entries="@array/searchMod"
+            app:entryValues="@array/searchMod_values"
+            app:enableCopying="true"
+        />
+        <ListPreference
+            app:key="charsetName"
+            app:title="默认字符码"
+            app:summary="解码使用的字符码"
+            app:entries="@array/charsetName"
+            app:entryValues="@array/charsetName_values"
+            app:enableCopying="true"
+            app:useSimpleSummaryProvider="true"
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="存储设置"
+    >
+        <Preference
+            app:key="file_authorizeGet"
+            app:title="点击授权顶层文件夹"
+            app:icon="@drawable/ic_book"
+            app:summary="选择并授权后才能进行存储"
+        />
+        <SwitchPreferenceCompat
+            app:key="file_isSave"
+            app:title="存储开关"
+            app:selectable="true"
+            app:summary="获取了章节文本后是否存储"
+            app:summaryOn="还没写这个功能，别试了，现在不论开关都只能存储下来XD"
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="朗读默认值设置"
+    >
+        <SwitchPreferenceCompat
+            app:key="tts_consecutive"
+            app:selectable="true"
+            app:summary="读完一章后是否自动翻到下一张继续朗读"
+            app:summaryOn="还没写这个功能，别试了，点了也没用"
+            app:title="连读开关"
+        />
+        <EditTextPreference
+            app:dependency="tts_consecutive"
+            app:key="tts_consecutiveTime"
+            app:summary="30"
+            app:title="连读时间（分钟）"
+            app:useSimpleSummaryProvider="true"
+        />
+        <SeekBarPreference
+            app:key="tts_speed"
+            app:title="默认朗读速度(数值需要除以10)"
+            app:defaultValue="10"
+            android:max="40"
+            app:showSeekBarValue="true"
+        />
+        <SeekBarPreference
+            app:key="tts_pitch"
+            app:title="默认朗读音色（越高越尖）"
+            app:defaultValue="10"
+            android:max="30"
+            app:showSeekBarValue="true"
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="主题颜色"
+        app:initialExpandedChildrenCount="0"
+    >
+        <Preference
+            app:title="平静蓝"
+            app:key="themes_blue"
+            app:summary="点击设置"
+            app:icon="@drawable/ic_draw"
+            app:selectable="true"/>
+        <Preference
+            app:title="神秘紫"
+            app:key="themes_purple"
+            app:summary="点击设置"
+            app:icon="@drawable/ic_draw"
+            app:selectable="true"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

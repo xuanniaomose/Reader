@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">玄鸟阅读</string>
+    <string name="tab_text_1">搜索</string>
+    <string name="tab_text_2">本地</string>
+    <string name="tab_text_3">平台</string>
+    <string name="tab_text_4">很怪</string>
+</resources>
