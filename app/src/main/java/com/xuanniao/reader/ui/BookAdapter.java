@@ -22,7 +22,7 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
     private List<BookItem> bookList;
     private int highlightNum = -1;
     public BookAdapter(Context context, List<BookItem> bookList) {
-        super(context, R.layout.book_i, bookList);
+        super(context, R.layout.book_list_i, bookList);
         this.bookList = bookList;
         this.context = context;
     }
@@ -39,7 +39,7 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         BookAdapter.ViewHolder viewHolder;
         //为每一个子项加载设定的布局
         if (convertView == null) {
-            item = LayoutInflater.from(getContext()).inflate(R.layout.book_i, parent, false);
+            item = LayoutInflater.from(getContext()).inflate(R.layout.book_list_i, parent, false);
             viewHolder = new BookAdapter.ViewHolder();
             viewHolder.tv_bookIName = item.findViewById(R.id.tv_bookIName);
             viewHolder.tv_bookIAuthor = item.findViewById(R.id.tv_bookIAuthor);
@@ -73,10 +73,10 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
             viewHolder.tv_bookIClassify.setText(classify);
         }
         if (position == highlightNum) {
-            viewHolder.tv_bookIName.setTextColor(getIntColor("green_500"));
+            viewHolder.tv_bookIName.setTextColor(getIntColor("colorOnPrimary"));
             viewHolder.tv_bookIName.setBackgroundColor(getIntColor("gray_700"));
         } else {
-            viewHolder.tv_bookIName.setTextColor(getIntColor("green_700"));
+            viewHolder.tv_bookIName.setTextColor(getIntColor("colorPrimary"));
             viewHolder.tv_bookIName.setBackgroundColor(getIntColor("transparent"));
         }
         return item;

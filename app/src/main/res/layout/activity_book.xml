@@ -6,7 +6,6 @@
     android:id="@+id/reader"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     android:orientation="vertical"
     tools:context=".ui.BookActivity"
 >
@@ -23,11 +22,10 @@
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/gray_700"
-        app:tabTextColor="@color/gray_300"
         app:tabSelectedTextColor="@color/white"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="stretch"
+        android:background="@color/gray_900"
     />
 
 </LinearLayout>

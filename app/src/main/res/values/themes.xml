@@ -1,8 +1,91 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="XNApp.Theme.DarkPurple" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- 状态栏颜色 -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- 状态栏图标颜色：true 图标黑色,false 图标白色-->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- 导航栏-手势条半透明透明：对于手势条就是保留那个显眼的高对比度条条，但是背景是透明的 -->
+        <item name="android:windowTranslucentNavigation">true</item>
+        <!-- android10及其以下的手势栏和状态栏颜色 11及以上的版本无效-->
+        <!--<item name="android:navigationBarColor">@android:color/white</item>-->
 
+        <!-- 主要颜色 -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
+
+        <!--默认控件在选中状态&获取焦点状态下使用这个颜色，常见有：
+            CheckBox：checked 状态
+            RadioButton：checked 状态
+            SwitchCompat：checked 状态
+            EditText：获取焦点时的 underline 和 cursor 颜色
+            TextInputLayout：悬浮 label 字体颜色-->
+        <item name="colorAccent">@color/purple_600</item>
+        <!--状态View常态未选中、未获取焦点状态下的颜色，
+                    常见如：unselected CheckBox 和 RadioButton，
+                    失去焦点时的 EditText，Toolbar 溢出按钮颜色，等等。-->
+        <item name="colorControlNormal">@color/purple_500</item>
+        <!--colorAccent 的替代者，该属性生效优先级比colorAccent高
+            比如对于 CheckBox 和 RadioButton 的 checked 状态
+            colorControlActivated 属性会覆盖 colorAccent 属性的对应颜色。-->
+        <item name="colorControlActivated">@color/purple_700</item>
+        <!--文本的默认颜色-->
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textColorPrimary">@color/gray_700</item>
+        <item name="android:textColorSecondary">@color/gray_300</item>
+        <!--屏幕方向 纵向portrait 横向landscape-->
+        <item name="android:screenOrientation">portrait</item>
+        <item name="android:configChanges">orientation|keyboardHidden|screenSize</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <!--窗口背景色，每个activity默认的背景色-->
+        <item name="android:windowBackground">@color/black</item>
+
+        <item name="searchViewStyle">@style/xnSearchViewStyle</item>
+        <!--spinner的样式设置要同时配置拉出模式即是下拉式列表dropdown还是弹出式列表dialog-->
+<!--        <item name="android:spinnerStyle">@style/xnSpinnerStyle</item>-->
+        <item name="android:dropDownSpinnerStyle">@style/xnSpinnerStyle</item>
+
+<!--        <item name="android:spinnerDropDownItemStyle">@style/xnSpinnerDropDownItemStyle</item>-->
+<!--        <item name="android:spinnerItemStyle">@style/xnSpinnerStyle</item>-->
+<!--        <item name="android:popupBackground">@drawable/xn_spinner_dropdown</item>-->
     </style>
 
-    <style name="Theme.Reader" parent="XNApp.Theme.DarkPurple"/>
+    <style name="xnSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!-- 设置SearchView整体背景 -->
+        <item name="android:background">@drawable/search_view</item>
+        <item name="android:backgroundTint">@color/purple_500</item>
+        <!-- 设置搜索输入框的背景 -->
+        <item name="queryBackground">@color/transparent</item>
+    </style>
+
+    <style name="xnSpinnerStyle" parent="android:Widget.ListView.DropDown">
+        <item name="android:spinnerMode">dropdown</item>
+        <item name="textFillColor">@color/purple_700</item>
+        <item name="android:textAlignment">center</item>
+<!--        <item name="divider">@color/purple_700</item>-->
+        <item name="android:divider">@color/purple_700</item>
+        <item name="android:dividerHeight">1dp</item>
+        <item name="android:childDivider">@color/purple_700</item>
+        <item name="android:background">@drawable/xn_spinner</item>
+        <item name="android:backgroundTint">@color/purple_500</item>
+        <item name="android:popupBackground">@drawable/xn_spinner_dropdown</item>
+<!--        <item name="android:dropDownItemStyle">@style/xnSpinnerDropDownItemStyle</item>-->
+<!--        <item name="popupMenuStyle">@drawable/xn_spinner_dropdown</item>-->
+<!--        <item name="dropDownListViewStyle">@drawable/xn_spinner_dropdown</item>-->
+        <item name="dropDownBackgroundTint">@color/purple_500</item>
+        <!--        <item name="popupMenuStyle">@style/xnSpinnerPopupMenuStyle</item>-->
+    </style>
+
+    <style name="xnSpinnerDropDownItemStyle" parent="android:Widget.ListView.DropDown">
+        <item name="android:background">@drawable/xn_spinner_dropdown</item>
+    </style>
+
+
 </resources>

@@ -51,9 +51,9 @@ public class CatalogAdapter extends ArrayAdapter<String> {
             viewHolder = (ViewHolder) item.getTag();
         }
         if (readList != null && readList.contains(position + 1)) {
-            viewHolder.tv_catalogTitle.setTextColor(getIntColor("green_700"));
+            viewHolder.tv_catalogTitle.setTextColor(getIntColor("colorOnPrimary"));
         } else {
-            viewHolder.tv_catalogTitle.setTextColor(getIntColor("green_500"));
+            viewHolder.tv_catalogTitle.setTextColor(getIntColor("colorPrimary"));
         }
         String title = catalogItem.getChapterTitle(position);
         if (savedList != null && savedList.contains(position + 1)) {

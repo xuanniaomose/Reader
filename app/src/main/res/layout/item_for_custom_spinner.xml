@@ -4,10 +4,10 @@
     android:gravity="center"
     android:text="下拉列表项样式"
     android:textColor="@color/purple_700"
-    android:textSize="12sp"
+    android:textSize="14sp"
     android:layout_width="match_parent"
-    android:layout_height="32dp"
-    android:paddingHorizontal="6dp"
+    android:layout_height="36dp"
+    android:foregroundGravity="center"
     android:singleLine="true"
     android:ellipsize="marquee"
 />

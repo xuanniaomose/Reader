@@ -6,7 +6,6 @@
     android:id="@+id/reader"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     tools:context=".ui.CatalogActivity"
 >
     <LinearLayout
@@ -30,7 +29,6 @@
         <TextView
             android:id="@+id/tv_bookName"
             android:textSize="22sp"
-            android:textColor="@color/green_700"
             android:layout_gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -75,7 +73,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginHorizontal="1dp"
-            android:background="@color/purple_200"
             android:visibility="invisible"
         />
         <Button
@@ -85,7 +82,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginHorizontal="1dp"
-            android:background="@color/purple_200"
         />
         <Button
             android:id="@+id/btn_locals"
@@ -94,7 +90,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginHorizontal="1dp"
-            android:background="@color/purple_200"
             android:visibility="invisible"
         />
     </LinearLayout>
