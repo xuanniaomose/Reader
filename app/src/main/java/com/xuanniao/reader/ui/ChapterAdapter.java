@@ -46,11 +46,11 @@ public class ChapterAdapter extends ArrayAdapter<String> {
             viewHolder = (ViewHolder) item.getTag();
         }
         if (position == paragraphNum) {
-            viewHolder.tv_paragraph.setTextColor(getIntColor("green_500"));
-            viewHolder.tv_paragraph.setBackgroundColor(getIntColor("gray_700"));
+            viewHolder.tv_paragraph.setTextColor(getIntColor("textColorPrimary"));
+            viewHolder.tv_paragraph.setBackgroundColor(getIntColor("windowBackgroundSecondary"));
         } else {
-            viewHolder.tv_paragraph.setTextColor(getIntColor("green_700"));
-            viewHolder.tv_paragraph.setBackgroundColor(getIntColor("black"));
+            viewHolder.tv_paragraph.setTextColor(getIntColor("textColor"));
+            viewHolder.tv_paragraph.setBackgroundColor(getIntColor("transparent"));
         }
         String paragraph = paragraphList.get(position);
 //        Log.d(Tag, "paragraph:" + paragraph);

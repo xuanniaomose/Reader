@@ -73,10 +73,10 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
             viewHolder.tv_bookIClassify.setText(classify);
         }
         if (position == highlightNum) {
-            viewHolder.tv_bookIName.setTextColor(getIntColor("colorOnPrimary"));
-            viewHolder.tv_bookIName.setBackgroundColor(getIntColor("gray_700"));
+            viewHolder.tv_bookIName.setTextColor(getIntColor("textColorSecondary"));
+            viewHolder.tv_bookIName.setBackgroundColor(getIntColor("windowBackgroundSecondary"));
         } else {
-            viewHolder.tv_bookIName.setTextColor(getIntColor("colorPrimary"));
+            viewHolder.tv_bookIName.setTextColor(getIntColor("textColor"));
             viewHolder.tv_bookIName.setBackgroundColor(getIntColor("transparent"));
         }
         return item;

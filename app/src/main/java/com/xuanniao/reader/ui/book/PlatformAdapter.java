@@ -1,15 +1,12 @@
 package com.xuanniao.reader.ui.book;
 
 import android.content.Context;
-import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.PlatformDB;
 
 import java.util.List;
 

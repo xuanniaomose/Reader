@@ -11,6 +11,7 @@
 
     <ListView
         android:id="@+id/lv_article"
+        android:divider="@null"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginHorizontal="10dp"
@@ -36,30 +37,38 @@
             android:layout_width="match_parent"
             android:layout_height="40dp"
         >
-            <Button
+            <ImageButton
                 android:id="@+id/btn_back"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:src="@drawable/ic_back"
+                android:tint="@color/colorPrimary"
+                android:gravity="center"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/ic_back"
+                android:background="@color/transparent"
             />
             <TextView
                 android:id="@+id/tv_title"
                 android:textSize="20sp"
                 android:gravity="center"
-                android:textColor="@color/green_700"
                 android:layout_gravity="center"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:maxLines="1"
             />
-            <Button
+            <ImageButton
                 android:id="@+id/btn_settings"
+                android:src="@drawable/ic_more"
+                android:tint="@color/colorPrimary"
+                android:background="@color/transparent"
+                android:scaleType="fitCenter"
+                android:padding="6dp"
                 android:layout_width="40dp"
-                android:layout_height="36dp"
-                android:gravity="center"
-                android:background="@drawable/ic_more"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
             />
         </LinearLayout>
 
@@ -77,7 +86,7 @@
             />
             <Button
                 android:id="@+id/btn_rewind"
-                android:layout_width="42dp"
+                android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginHorizontal="15dp"
                 android:background="@drawable/ic_rewind"
@@ -89,7 +98,7 @@
             />
             <Button
                 android:id="@+id/btn_pause"
-                android:layout_width="42dp"
+                android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginHorizontal="15dp"
                 android:background="@drawable/ic_pause"
@@ -101,7 +110,7 @@
             />
             <Button
                 android:id="@+id/btn_forward"
-                android:layout_width="42dp"
+                android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginHorizontal="15dp"
                 android:background="@drawable/ic_forward"
@@ -119,36 +128,78 @@
         android:id="@+id/ll_button"
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="42dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginHorizontal="5dp"
+        android:background="@color/colorPrimary"
     >
         <Button
             android:id="@+id/btn_last"
             android:text="上一章"
-            android:layout_width="wrap_content"
+            android:layout_width="60dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+        />
+<!--        <Space-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--        />-->
+<!--        <ImageButton-->
+<!--            android:id="@+id/btn_catalog"-->
+<!--            android:layout_width="36dp"-->
+<!--            android:layout_height="36dp"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:src="@drawable/ic_list"-->
+<!--            android:background="@color/transparent"-->
+<!--        />-->
+        <Space
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginHorizontal="5dp"
         />
-        <Button
+        <ImageButton
             android:id="@+id/btn_reading"
-            android:text="朗读"
-            android:layout_width="wrap_content"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:background="@color/transparent"
+        />
+        <Space
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1"
+        />
+        <ImageButton
+            android:id="@+id/btn_details"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_color"
+            android:background="@color/transparent"
+        />
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
         />
         <Button
             android:id="@+id/btn_next"
             android:text="下一章"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="5dp"
+            android:layout_width="60dp"
             android:layout_weight="1"
+            android:layout_height="wrap_content"
         />
+<!--        <Button-->
+<!--            android:id="@+id/btn_reading"-->
+<!--            android:text="朗读"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:layout_marginHorizontal="5dp"-->
+<!--        />-->
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

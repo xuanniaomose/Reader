@@ -79,7 +79,7 @@ public class SearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_search, container, false);
-        sp_isExact =fragmentView.findViewById(R.id.sp_isExact);
+        sp_isExact = fragmentView.findViewById(R.id.sp_isExact);
         svSearch = fragmentView.findViewById(R.id.sv_search);
         tabs_search = fragmentView.findViewById(R.id.tabs_search);
         pagerSearch = fragmentView.findViewById(R.id.pager_search);
@@ -149,8 +149,6 @@ public class SearchFragment extends Fragment {
                     intent.putExtra("platformID", resultPagesAdapter.getPageNum());
                     context.startActivity(intent);
                 }
-
-
                 svSearch.clearFocus();
                 return true;
             }

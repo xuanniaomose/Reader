@@ -31,8 +31,7 @@ public class PlatformFragment extends Fragment {
     protected Context mContext;
     private PlatformDB pdb;
     private ListView lv_platform;
-    private TextView tv_addPlatformByFile;
-    Button btn_export;
+    Button btn_export, btn_addPlatformByFile;
     private boolean isFirstLoad;
     private List<PlatformItem> platformList;
     private PlatformAdapter platformAdapter;
@@ -63,7 +62,7 @@ public class PlatformFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_platform, container, false);
         lv_platform = fragmentView.findViewById(R.id.lv_platform);
-        tv_addPlatformByFile = fragmentView.findViewById(R.id.btn_addPlatformByFile);
+        btn_addPlatformByFile = fragmentView.findViewById(R.id.btn_addPlatformByFile);
         btn_export = fragmentView.findViewById(R.id.btn_export);
         pdb = PlatformDB.getInstance(mContext, Constants.DB_PLATFORM);
         return fragmentView;
@@ -76,7 +75,7 @@ public class PlatformFragment extends Fragment {
         if (isFirstLoad) {
             isFirstLoad = false;
             setList();
-            tv_addPlatformByFile.setOnClickListener(new View.OnClickListener() {
+            btn_addPlatformByFile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(Intent.ACTION_GET_CONTENT);

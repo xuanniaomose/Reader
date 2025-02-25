@@ -71,9 +71,10 @@ public class BookDB extends SQLiteOpenHelper {
                 "chapterRead VARCHAR," +
                 "chapterSaved VARCHAR," +
                 "chapterTotal INTEGER," +
+                "bookMark INTEGER," +
+
                 "publisher VARCHAR," +
                 "classify VARCHAR," +
-
                 "platformName VARCHAR NOT NULL," +
                 "bookCode VARCHAR," +
                 "mimeType VARCHAR," +
@@ -308,9 +309,10 @@ public class BookDB extends SQLiteOpenHelper {
             values.put("chapterSaved", savedListStr);
         }
         values.put("chapterTotal", bookItem.getChapterTotal());
+        values.put("bookMark", bookItem.getBookMark());
+
         values.put("publisher", bookItem.getPublisher());
         values.put("classify", bookItem.getClassify());
-
         values.put("platformName", bookItem.getPlatformName());
         values.put("bookCode", bookItem.getBookCode());
         values.put("mimeType", bookItem.getMimeType());
@@ -352,16 +354,17 @@ public class BookDB extends SQLiteOpenHelper {
                 book.setChapterSavedList(savedList);
             }
             book.setChapterTotal(cursor.getInt(8));
-            book.setPublisher(cursor.getString(9));
-            book.setClassify(cursor.getString(10));
+            book.setBookMark(cursor.getInt(9));
+            book.setPublisher(cursor.getString(10));
+            book.setClassify(cursor.getString(11));
 
-            book.setPlatformName(cursor.getString(11));
-            book.setBookCode(cursor.getString(12));
-            book.setMimeType(cursor.getString(13));
-            book.setVolumeName(cursor.getString(14));
-            book.setVolumeIndex(cursor.getInt(15));
-            book.setPublishDate(cursor.getInt(16));
-            book.setDownloadTime(cursor.getInt(17));
+            book.setPlatformName(cursor.getString(12));
+            book.setBookCode(cursor.getString(13));
+            book.setMimeType(cursor.getString(14));
+            book.setVolumeName(cursor.getString(15));
+            book.setVolumeIndex(cursor.getInt(16));
+            book.setPublishDate(cursor.getInt(17));
+            book.setDownloadTime(cursor.getInt(18));
             list.add(book);
         }
         return list;

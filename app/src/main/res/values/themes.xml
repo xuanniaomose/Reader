@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="XNApp.Theme.DarkPurple" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="XNApp.Theme.Light" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- 状态栏颜色 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <!-- 状态栏图标颜色：true 图标黑色,false 图标白色-->
@@ -26,34 +26,35 @@
             SwitchCompat：checked 状态
             EditText：获取焦点时的 underline 和 cursor 颜色
             TextInputLayout：悬浮 label 字体颜色-->
-        <item name="colorAccent">@color/purple_600</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <!--状态View常态未选中、未获取焦点状态下的颜色，
                     常见如：unselected CheckBox 和 RadioButton，
                     失去焦点时的 EditText，Toolbar 溢出按钮颜色，等等。-->
-        <item name="colorControlNormal">@color/purple_500</item>
+        <item name="colorControlNormal">@color/colorControlNormal</item>
         <!--colorAccent 的替代者，该属性生效优先级比colorAccent高
             比如对于 CheckBox 和 RadioButton 的 checked 状态
             colorControlActivated 属性会覆盖 colorAccent 属性的对应颜色。-->
-        <item name="colorControlActivated">@color/purple_700</item>
+        <item name="colorControlActivated">@color/colorControlActivated</item>
         <!--文本的默认颜色-->
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textColorPrimary">@color/gray_700</item>
-        <item name="android:textColorSecondary">@color/gray_300</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
         <!--屏幕方向 纵向portrait 横向landscape-->
         <item name="android:screenOrientation">portrait</item>
         <item name="android:configChanges">orientation|keyboardHidden|screenSize</item>
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <!--窗口背景色，每个activity默认的背景色-->
-        <item name="android:windowBackground">@color/black</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
 
         <!--按钮的样式-->
-        <item name="android:button">@style/xnTextButton</item>
-        <item name="materialButtonStyle">@style/xnTextButton</item>
+<!--        <item name="android:button">@style/xnTextColorButton</item>-->
+<!--        <item name="materialButtonStyle">@style/xnTextColorButton</item>-->
         <!--搜索框的样式-->
         <item name="searchViewStyle">@style/xnSearchViewStyle</item>
         <!--选择器的样式-->
         <item name="android:dropDownSpinnerStyle">@style/xnSpinnerStyle</item>
+        <!--滑动页面头的样式-->
 
 <!--        <item name="android:spinnerDropDownItemStyle">@style/xnSpinnerDropDownItemStyle</item>-->
 <!--        <item name="android:spinnerItemStyle">@style/xnSpinnerStyle</item>-->
@@ -61,7 +62,7 @@
 
     </style>
 
-    <style name="xnTextButton">
+    <style name="xnTextColorButton"  parent="Widget.MaterialComponents.Button">
         <item name="textFillColor">@color/textColor</item>
         <item name="android:textSize">16sp</item>
         <item name="android:gravity">center</item>
@@ -69,7 +70,18 @@
         <item name="android:paddingHorizontal">5dp</item>
         <item name="android:foreground">?selectableItemBackground</item>
         <item name="android:background">@drawable/text_btn_bg</item>
-        <item name="android:backgroundTint">@color/colorPrimary</item>
+        <item name="android:backgroundTint">@color/colorControlNormal</item>
+    </style>
+
+    <style name="xnTextTransparentButton">
+        <item name="textFillColor">@color/textColor</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingVertical">7dp</item>
+        <item name="android:paddingHorizontal">5dp</item>
+        <item name="android:foreground">?selectableItemBackground</item>
+        <item name="android:background">@drawable/text_tr_btn_bg</item>
+        <item name="android:backgroundTint">@color/colorControlNormal</item>
     </style>
 
     <style name="xnSearchViewStyle" parent="Widget.AppCompat.SearchView">

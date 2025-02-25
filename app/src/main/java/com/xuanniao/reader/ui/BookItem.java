@@ -12,6 +12,8 @@ public class BookItem {
     List<Integer> chapterReadList;
     List<Integer> chapterSavedList;
     int chapterTotal;
+    int bookMark;
+
     String publisher;
     String classify;
     String platformName;
@@ -67,6 +69,10 @@ public class BookItem {
 
     public void setChapterTotal(int chapterTotal) {
         this.chapterTotal = chapterTotal;
+    }
+
+    public void setBookMark(int bookMark) {
+        this.bookMark = bookMark;
     }
 
     public void setPublisher(String publisher) {
@@ -137,6 +143,10 @@ public class BookItem {
 
     public int getChapterTotal() {
         return chapterTotal;
+    }
+
+    public int getBookMark() {
+        return bookMark;
     }
 
     public String getPublisher() {

@@ -25,7 +25,7 @@
         app:tabSelectedTextColor="@color/white"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="stretch"
-        android:background="@color/gray_900"
+        android:background="@color/windowBackgroundSecondary"
     />
 
 </LinearLayout>

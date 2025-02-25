@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/reader"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,6 +16,8 @@
         android:layout_height="40dp"
         app:tabIndicatorHeight="3dp"
         app:tabIndicatorFullWidth="false"
+        app:tabTextColor="@color/textColorSecondary"
+        app:tabSelectedTextColor="@color/textColorPrimary"
         app:tabIndicator="@drawable/shape_tab_indicator"
         android:background="@color/transparent"
     />
@@ -32,7 +35,7 @@
         <ImageView
             android:id="@+id/btn_lyric"
             android:src="@drawable/ic_book"
-            android:tint="@color/purple_700"
+            android:tint="@color/colorPrimary"
             android:padding="5dp"
             android:layout_margin="3dp"
             android:layout_width="40dp"
@@ -42,7 +45,6 @@
         <TextView
             android:id="@+id/tv_title"
             android:text="@string/app_name"
-            android:textColor="@color/purple_700"
             android:textSize="16sp"
             android:gravity="center_vertical"
             android:layout_width="wrap_content"
@@ -70,7 +72,7 @@
         <ImageButton
             android:id="@+id/btn_settings"
             android:src="@drawable/ic_settings"
-            android:tint="@color/purple_700"
+            android:tint="@color/colorPrimary"
             android:layout_margin="3dp"
             android:layout_width="40dp"
             android:layout_height="40dp"

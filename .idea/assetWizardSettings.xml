@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/D:/Program_Files/JavaForAndroid/AndroidSDK/icons/material/materialicons/stop/baseline_stop_24.xml" />
+                                      <entry key="url" value="file:/D:/Program_Files/JavaForAndroid/AndroidSDK/icons/material/materialicons/color_lens/baseline_color_lens_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -29,7 +29,7 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_stop" />
+                            <entry key="outputName" value="ic_color" />
                             <entry key="sourceFile" value="E:\Program_Data\android_app\XuanNiaoReader_forAndroid\Reader" />
                           </map>
                         </option>

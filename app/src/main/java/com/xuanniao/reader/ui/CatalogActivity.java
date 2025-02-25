@@ -29,6 +29,7 @@ public class CatalogActivity extends AppCompatActivity {
     ListView lv_catalog;
     CatalogAdapter catalogAdapter;
     SharedPreferences sp;
+    BookDB bdb;
     public static Handler handler_catalog;
     CatalogItem catalogItem;
     String bookName, bookCode;
@@ -137,6 +138,12 @@ public class CatalogActivity extends AppCompatActivity {
             Log.d(Tag, "chapterCode:" + chapterCode + " | title:" + title + " | chapterNum:" + (i+1));
             startReader((i + 1), chapterCode, title);
         });
+        bdb = BookDB.getInstance(this, Constants.DB_BOOK);
+        BookItem bookItem = bdb.queryByFieldItem(Constants.TAB_BOOK, "bookCode", bookCode);
+        int catalogNumMark = bookItem.getBookMark() / 10000;
+        if (catalogNumMark >= 0 && catalogNumMark < catalogItem.getChapterCodeList().size()) {
+            lv_catalog.setSelection(catalogNumMark - 2);
+        }
     }
 
     private void startReader(int chapterNum, String chapterCode, String chapterTitle) {

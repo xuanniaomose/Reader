@@ -24,6 +24,7 @@ import org.jsoup.select.Elements;
 
 import java.io.*;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class BookGet extends Service {
@@ -133,19 +134,24 @@ public class BookGet extends Service {
             postHtml(platformItem, bookName);
             return;
         }
-        String url = platformItem.getPlatformUrl();
+        String url;
         if (bookCode != null) {
-            url = url + bookCode;
+            url = platformItem.getPlatformUrl() + bookCode;
         } else {
-            url = url +  platformItem.getSearchPath() + bookName;
+            url = platformItem.getSearchPath() + bookName;
         }
         if (chapterCode != null) {
             url = url + "/" + chapterCode + ".html";
         } else {
-            url = url + ".html";
+            url = url + "/";
+//            url = url  + ".html";
         }
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
+        if (cookie.contains("timeLong")) {
+            String timeLong = String.valueOf(System.currentTimeMillis());
+            cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
+        }
         Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request
                 .Builder()
@@ -179,12 +185,17 @@ public class BookGet extends Service {
                     if (response.body() != null) {
                         Log.d(Tag, "请求成功");
                         String charsetName = platformItem.getCharsetName();
+//                        Log.d(Tag, "Supported charsets:");
+//                        SortedMap<String, Charset> charsetsMap = Charset.availableCharsets();
+//                        for (String name : charsetsMap.keySet()) {
+//                            Log.d(Tag, name);
+//                        }
                         charsetName = (charsetName.isEmpty())?
                                 PreferenceManager.getDefaultSharedPreferences(context)
-                                        .getString("charsetName", "utf-8") : charsetName;
-//                        Log.d(Tag, "charsetName:" + charsetName);
+                                        .getString("charsetName", "UTF-8") : charsetName;
+                        Log.d(Tag, "charsetName:" + charsetName);
                         htmlContent = new String(response.body().bytes(), charsetName);
-//                        Log.d(Tag, "htmlContent:" + htmlContent);
+                        Log.d(Tag, "htmlContent:" + htmlContent);
                     } else {
                         Log.d(Tag, "请求失败 没有返回值");
                         htmlContent = "0";
@@ -207,7 +218,8 @@ public class BookGet extends Service {
                                 bookName, chapterCode, chapterTitle, chapterNum);
                     }
                 } catch (IOException e) {
-                    Log.e(Tag, e.getMessage());
+                    throw new RuntimeException(e);
+//                    Log.e(Tag, "e:" + e.getMessage());
                 }
             }
         });
@@ -254,7 +266,7 @@ public class BookGet extends Service {
                 }
             });
         } catch (UnsupportedEncodingException e) {
-            Log.e(Tag, e.getMessage());
+            Log.e(Tag, "e:" + e.getMessage());
         }
     }
 
@@ -279,9 +291,15 @@ public class BookGet extends Service {
                     JSONArray findList = resultFormatJson.getJSONArray("resultList");
                     Document doc = Jsoup.parseBodyFragment(htmlContent);
                     Elements bookAttrs = switchActionToElements(findList, doc);
-                    if (bookAttrs == null) return null;
-                    for (Element bookAttr : bookAttrs) {
-                        BookItem bookItem = getBookItem(resultPage, resultFormatJson, bookAttr);
+                    if (bookAttrs != null) {
+                        for (Element bookAttr : bookAttrs) {
+                            BookItem bookItem = getBookItem(resultPage, resultFormatJson, bookAttr);
+                            bookItem.setPlatformName(platformItem.getPlatformName());
+                            bookList.add(bookItem);
+                        }
+                    } else {
+                        Map<String, String> map = switchActionToMap(findList, doc);
+                        BookItem bookItem = getBookItemByMap(resultPage, resultFormatJson, map);
                         bookItem.setPlatformName(platformItem.getPlatformName());
                         bookList.add(bookItem);
                     }
@@ -322,6 +340,43 @@ public class BookGet extends Service {
                     break;
                 case "author":
                     bookItem.setAuthor(str);
+                    break;
+            }
+        }
+        return bookItem;
+    }
+
+    private BookItem getBookItemByMap(String[] attrArray, JSONObject pageJson, Map<String, String> map) {
+        BookItem bookItem = new BookItem();
+//        Log.d(Tag, "pageJson:" + pageJson);
+        for (int i = 1; i < attrArray.length; i++) {
+            String attr = attrArray[i];
+            String attrValue = null;
+            if (Objects.equals(pageJson.getJSONArray(attr).getJSONObject(0)
+                    .getString("action"), "noAction")) {
+                attrValue = map.get(attr);
+            } else {
+
+            }
+            map.get(attr);
+            if (attr == null) continue;
+            switch (attr) {
+                case "resultList":
+                    continue;
+                case "bookCode":
+                    bookItem.setBookCode(attrValue);
+                    break;
+                case "bookName":
+                    bookItem.setBookName(attrValue);
+                    break;
+                case "classify":
+                    bookItem.setClassify(attrValue);
+                    break;
+                case "chapter_count_geted":
+                    bookItem.setChapterTotal(Integer.parseInt(attrValue));
+                    break;
+                case "author":
+                    bookItem.setAuthor(attrValue);
                     break;
             }
         }
@@ -393,12 +448,24 @@ public class BookGet extends Service {
                     String title = getAttr(titleStep, doc.body());
                     chapterItem.setTitle(title);
                     JSONArray findList = chapterFormatJson.getJSONArray("paragraphList");
-                    Elements chapterAttrs = switchActionToElements(findList, doc);
-                    if (chapterAttrs == null) return null;
-                    JSONArray paragraphStep = chapterFormatJson.getJSONArray("paragraph");
-                    for (Element chapterAttr : chapterAttrs) {
-                        String paragraph = getAttr(paragraphStep, chapterAttr);
-                        chapterItem.addParagraph(paragraph);
+                    if (Arrays.asList(chapterPage).contains("paragraph")) {
+                        Elements chapterAttrs = switchActionToElements(findList, doc);
+                        if (chapterAttrs == null) return null;
+                        JSONArray paragraphStep = chapterFormatJson.getJSONArray("paragraph");
+                        for (Element chapterAttr : chapterAttrs) {
+                            String paragraph = getAttr(paragraphStep, chapterAttr);
+                            chapterItem.addParagraph(paragraph);
+                        }
+                    } else {
+                        String[] paragraphArray = switchActionToParagraphArray(findList, doc);
+                        if (paragraphArray == null) return null;
+                        for (String chapterAttr : paragraphArray) {
+                            if (Objects.equals(chapterAttr.trim(), "")) continue;
+                            if (Objects.equals(chapterAttr.trim(), "<script>chaptererror();</script>")) continue;
+                            if (chapterAttr.trim().contains("请记住本书首发域名")) continue;
+                            if (chapterAttr.trim().contains("<!--")) continue;
+                            chapterItem.addParagraph(chapterAttr.trim());
+                        }
                     }
                 } catch (JSONException e) {
                     Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
@@ -425,8 +492,8 @@ public class BookGet extends Service {
                         String selectBy = actionStep.getString("by");
 //                        Log.d(Tag, "selectBy:" + selectBy);
                         String selectGet = actionStep.getString("get");
+                        String from = actionStep.getString("from");
 //                        Log.d(Tag, "selectGet:" + selectGet);
-
                         if (selectBy != null && i == 0) {
                             elements = doc.select(selectBy);
 //                            Log.d(Tag, "i=0 elements:" + elements.html());
@@ -436,6 +503,9 @@ public class BookGet extends Service {
                         }
                         if (i == actionArray.size() - 1) {
 //                            Log.d(Tag, "i=max elements:" + elements.html());
+                            if (from != null) {
+                                 elements.subList(Integer.parseInt(from), elements.size());
+                            }
                             return elements;
                         }
                         if (elements != null && selectGet != null) {
@@ -453,15 +523,75 @@ public class BookGet extends Service {
         return null;
     }
 
+    private Map<String, String> switchActionToMap(JSONArray actionArray, Document doc) {
+        Map<String, String> map = new HashMap<String, String>();
+        Element el = null;
+        Elements elements = null;
+        String str = null;
+//        Log.d(Tag, "actionArray.length():" + actionArray.size());
+        for (int i = 0; i < actionArray.size(); i++) {
+//            Log.d(Tag, "i:" + i);
+            try {
+                JSONObject actionStep = actionArray.getJSONObject(i);
+                String action = actionStep.getString("action");
+//                Log.d(Tag, "action:" + action);
+                switch (action) {
+                    case "select":
+                        String selectBy = actionStep.getString("by");
+//                        Log.d(Tag, "selectBy:" + selectBy);
+                        String selectGet = actionStep.getString("get");
+//                        Log.d(Tag, "selectGet:" + selectGet);
+
+                        if (selectBy != null && i == 0) {
+                            elements = doc.select(selectBy);
+//                            Log.d(Tag, "i=0 elements:" + elements.html());
+                        } else if (selectBy != null && i > 0 && el != null) {
+                            elements = el.select(selectBy);
+//                            Log.d(Tag, "i>0 elements:" + elements.html());
+                        }
+                        if (elements != null && selectGet != null) {
+                            el = elements.get(Integer.parseInt(selectGet));
+//                            Log.d(Tag, "el:" + el.html());
+                        }
+                        break;
+                    case "elementGetVar":
+                        int getNum = Integer.parseInt(actionStep.getString("get"));
+                        if (el != null) {
+                            str = el.data().toString().split("var")[getNum];
+                        }
+                        break;
+                    case "forSearch":
+                        String listSig = actionStep.getString("action");
+                        if (str != null && str.contains(listSig)) {
+                            str = str.replace(listSig, "");
+                            str = str.replace("}];", "");
+                            String[] bookArray = str.split("}, \\{");
+                            for (String bookStr : bookArray) {
+                                bookStr.replace("\"", "");
+                                String[] kv = bookStr.split(": ");
+                                map.put(kv[0], kv[1]);
+                            }
+                        }
+                        break;
+                }
+            } catch (JSONException e) {
+                Log.e(Tag, "json数据格式错误，请核对后重新加载");
+//                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+        }
+        return map;
+    }
+
     private String getAttr(JSONArray attrStepJson, Element htmlListItem) {
 //        Log.d(Tag, "item:" + attr.trim());
         String str = null;
         try {
-//            Log.d(Tag, "actionStep:" + actionStep);
             Elements elements = null;
             Element element = null;
             for (int a = 0; a < attrStepJson.size(); a++) {
                 JSONObject step = attrStepJson.getJSONObject(a);
+                Log.d(Tag, "actionStep:" + step);
                 String action = step.getString("action");
                 switch (action) {
                     case "select":
@@ -482,6 +612,12 @@ public class BookGet extends Service {
                             } else {
                                 str = element.attr(attrBy);
                             }
+                        }
+                        break;
+                    case "i":
+                        String from = step.getString("from");
+                        if (from != null) {
+                            str = String.valueOf((a + Integer.parseInt(from)));
                         }
                         break;
                     case "html":
@@ -512,6 +648,62 @@ public class BookGet extends Service {
             return null;
         }
         return str;
+    }
+
+    private String[] switchActionToParagraphArray(JSONArray actionArray, Document doc) {
+        Element el = null;
+        Elements elements = null;
+        String str = null;
+//        Log.d(Tag, "actionArray.length():" + actionArray.size());
+        for (int i = 0; i < actionArray.size(); i++) {
+//            Log.d(Tag, "i:" + i);
+            try {
+                JSONObject actionStep = actionArray.getJSONObject(i);
+                String action = actionStep.getString("action");
+//                Log.d(Tag, "action:" + action);
+                switch (action) {
+                    case "select":
+                        String selectBy = actionStep.getString("by");
+//                        Log.d(Tag, "selectBy:" + selectBy);
+                        String selectGet = actionStep.getString("get");
+                        String from = actionStep.getString("from");
+//                        Log.d(Tag, "selectGet:" + selectGet);
+                        if (selectBy != null && i == 0) {
+                            elements = doc.select(selectBy);
+//                            Log.d(Tag, "i=0 elements:" + elements.html());
+                        } else if (selectBy != null && i > 0 && el != null) {
+                            elements = el.select(selectBy);
+//                            Log.d(Tag, "i>0 elements:" + elements.html());
+                        }
+                        if (elements != null && selectGet != null) {
+                            el = elements.get(Integer.parseInt(selectGet));
+//                            Log.d(Tag, "el:" + el.html());
+                        }
+                        break;
+                    case "html":
+                        if (el != null) {
+                            str = el.html();
+                        }
+                        break;
+                    case "replaceAll":
+                        if (str == null) return null;
+                        String targetA = actionStep.getString("target");
+                        String toA = actionStep.getString("to");
+                        if (targetA != null && toA != null && str != null) {
+                            str = str.replaceAll(targetA, toA);
+                        }
+                        break;
+                    case "split":
+                        String[] sa = str.split(actionStep.getString("by"));
+                        return sa;
+                }
+            } catch (JSONException e) {
+                Log.e(Tag, "json数据格式错误，请核对后重新加载");
+//                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+        }
+        return null;
     }
 
     private void sendMessage(int platformID, List<BookItem> bookList, CatalogItem catalogItem, ChapterItem chapterItem) {

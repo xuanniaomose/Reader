@@ -163,7 +163,7 @@ public class PlatformItem implements Parcelable {
         parcel.writeString(charsetName);
 
         if (resultPage != null && resultPage.length > 0) {
-            Log.d(Tag, String.join(",", resultPage));
+//            Log.d(Tag, String.join(",", resultPage));
             parcel.writeString(String.join(",", resultPage));
         }
         parcel.writeString(resultError);

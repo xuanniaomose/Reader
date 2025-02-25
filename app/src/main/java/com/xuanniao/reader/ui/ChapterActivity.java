@@ -32,19 +32,20 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     TextView tv_title;
     ListView lv_article;
     LinearLayout ll_tts, ll_setting;
-    Button btn_back, btn_settings, btn_reading, btn_last,
-            btn_next, btn_before, btn_ahead, btn_pause;
+    Button btn_last, btn_next, btn_before, btn_ahead, btn_pause;
+    ImageButton btn_back, btn_settings, btn_catalog, btn_reading, btn_color;
     public static Handler handler_paragraph;
     static List<String> paragraphList;
     ArrayList<String> chapterCodeList;
     ArrayList<String> chapterTitleList;
     ChapterAdapter chapterAdapter;
+    BookDB bdb;
     TTSService mTTSService;
     private ServiceConnection conn;
     SharedPreferences sp;
     String bookName, bookCode, chapterTitle, chapterCode;
     static int ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
-    static int nowReading = 0, chapterNum;
+    static int nowReading = 0, chapterNum, bookMark;
     static float speed, pitch;
     int isLocal, platformID;
     private NotificationManager mManager;
@@ -148,6 +149,9 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         chapterCodeList = intent.getStringArrayListExtra("chapterCodeList");
         chapterTitleList = intent.getStringArrayListExtra("chapterTitleList");
 //        Log.d(Tag, "chapterCodeList:" + chapterCodeList);
+        bdb = BookDB.getInstance(ChapterActivity.this, Constants.DB_BOOK);
+        BookItem bookItem = bdb.queryByFieldItem(Constants.TAB_BOOK, "bookCode", bookCode);
+        bookMark = bookItem.getBookMark();
 
         tv_title = findViewById(R.id.tv_title);
         tv_title.setText(chapterTitle);
@@ -273,7 +277,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 if (ttsState != 1) {
                     ttsState = 1;
                     btn_pause.setBackground(getDrawable(R.drawable.ic_pause));
-                    btn_reading.setText("退出朗读");
+//                    btn_reading.setText("退出朗读");
                     ll_tts.setVisibility(View.VISIBLE);
                     ll_setting.setVisibility(View.GONE);
                 }
@@ -286,7 +290,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 break;
             case Constants.MSG_STOP:
                 ttsState = 2;
-                btn_reading.setText("朗读");
+//                btn_reading.setText("朗读");
                 chapterAdapter.setHighlight(-1);
                 ll_tts.setVisibility(View.GONE);
                 ll_setting.setVisibility(View.VISIBLE);
@@ -295,7 +299,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 if (ttsState != 0) {
                     ttsState = 0;
                     nowReading = 0;
-                    btn_reading.setText("朗读");
+//                    btn_reading.setText("朗读");
                     chapterAdapter.setHighlight(-1);
                     ll_tts.setVisibility(View.GONE);
                     ll_setting.setVisibility(View.VISIBLE);
@@ -334,7 +338,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     }
 
     private void addChapterReadAndSaved() {
-        BookDB bdb = BookDB.getInstance(this, Constants.DB_BOOK);
+        if (chapterNum == -1) return;
         // 使用TreeSet排序去重
         List<Integer> readList = bdb.queryFieldWithCode(
                 Constants.TAB_BOOK, bookCode, "chapterRead");
@@ -372,14 +376,22 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                         }
                         if (chapterItem.getChapter() != null && !chapterItem.getChapter().isEmpty()) {
                             paragraphList = chapterItem.getChapter();
+                            if ((bookMark / 10000) == chapterNum) {
+                                nowReading = bookMark % 10000;
+                            } else {
+                                nowReading = 0;
+                            }
                             chapterAdapter = new ChapterAdapter(ChapterActivity.this, paragraphList);
                             lv_article.setAdapter(chapterAdapter);
                             mTTSService.setParagraphList(new ArrayList<>(paragraphList));
+                            // 使用书签跳转到上次读的自然段
+                            if (nowReading > -1 && nowReading < paragraphList.size()) {
+                                lv_article.setSelection(Math.max(nowReading - 2, 0));
+                            }
                         }
                         chapterNum = chapterItem.getChapterNum();
                         chapterCode = chapterItem.getChapterCode();
                         addChapterReadAndSaved();
-                        nowReading = 0;
                     }
                 } else if (msg_w.what == 2) {
                     Toast.makeText(ChapterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
@@ -472,16 +484,15 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     public void onBackPressed() {
         super.onBackPressed();
         if (mTTSService != null) ttsAction(Constants.ACTION_CLOSE, null);
+        bdb.updateItem(Constants.TAB_BOOK, bookCode, "bookMark",
+                null, null, (chapterNum * 10000 + nowReading));
+        Log.d(Tag, "bookMark:" + (chapterNum * 10000 + nowReading));
         paragraphList = null;
         Intent intent = new Intent(ChapterActivity.this, CatalogActivity.class);
         intent.putExtra("isLocal", isLocal);
         intent.putExtra("platformID", platformID);
         intent.putExtra("bookName", bookName);
         intent.putExtra("bookCode", bookCode);
-        Log.d(Tag, "isLocal:" + isLocal);
-        Log.d(Tag, "bookName:" + bookName);
-        Log.d(Tag, "bookCode:" + bookCode);
-        Log.d(Tag, "platformID:" + platformID);
         startActivity(intent);
     }
 }

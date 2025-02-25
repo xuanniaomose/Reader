@@ -17,14 +17,14 @@
             android:layout_width="30dp"
             android:layout_height="36dp"
             android:background="@drawable/ic_expand"
-            android:backgroundTint="@color/purple_500"
+            android:backgroundTint="@color/colorPrimary"
         />
         <TextView
             android:id="@+id/tv_titlePlatformName"
             android:text="平台1"
             android:textStyle="bold"
             android:textSize="15sp"
-            android:textColor="@color/purple_500"
+            android:textColor="@color/colorPrimary"
             android:layout_gravity="center_vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,7 +49,7 @@
                 android:layout_height="36dp"
                 android:layout_weight="1"
                 android:textColor="@color/white"
-                android:background="@color/purple_700"
+                android:background="@color/colorPrimary"
             />
             <TextView
                 android:id="@+id/tv_platformName"
@@ -64,7 +64,7 @@
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_weight="3"
-                android:background="@color/gray_700"
+                android:background="@color/windowBackground"
             />
         </TableRow>
 
@@ -81,7 +81,7 @@
                 android:layout_height="36dp"
                 android:layout_weight="1"
                 android:textColor="@color/white"
-                android:background="@color/purple_700"
+                android:background="@color/colorPrimary"
             />
             <TextView
                 android:id="@+id/tv_url"
@@ -96,7 +96,7 @@
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_weight="3"
-                android:background="@color/gray_700"
+                android:background="@color/windowBackground"
             />
         </TableRow>
 
@@ -113,7 +113,7 @@
                 android:layout_height="36dp"
                 android:layout_weight="1"
                 android:textColor="@color/white"
-                android:background="@color/purple_700"
+                android:background="@color/colorPrimary"
             />
             <TextView
                 android:id="@+id/tv_searchPath"
@@ -128,7 +128,7 @@
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_weight="3"
-                android:background="@color/gray_700"
+                android:background="@color/windowBackground"
             />
         </TableRow>
 
@@ -145,7 +145,7 @@
                 android:layout_height="36dp"
                 android:layout_weight="1"
                 android:textColor="@color/white"
-                android:background="@color/purple_700"
+                android:background="@color/colorPrimary"
             />
             <TextView
                 android:id="@+id/tv_cookie"
@@ -160,7 +160,7 @@
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_weight="3"
-                android:background="@color/gray_700"
+                android:background="@color/windowBackground"
             />
         </TableRow>
 
