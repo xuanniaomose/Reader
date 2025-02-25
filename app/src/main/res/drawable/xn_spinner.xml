@@ -6,8 +6,8 @@
             <solid android:color="@color/transparent"/>
             <!-- 矩形的圆角半径 -->
             <corners
-                android:topLeftRadius="15dp"
-                android:bottomLeftRadius="15dp"
+                android:topLeftRadius="16dp"
+                android:bottomLeftRadius="16dp"
             />
         </shape>
     </item>

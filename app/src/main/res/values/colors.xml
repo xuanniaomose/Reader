@@ -55,6 +55,10 @@
     <color name="colorSecondaryVariant">@color/blue_700</color>
     <color name="colorOnSecondary">@color/purple_900</color>
 
+    <color name="textColor">@color/white</color>
+    <color name="textColorPrimary">@color/gray_700</color>
+    <color name="textColorSecondary">@color/gray_300</color>
+
     <color name="design_bottom_navigation_shadow_color">#14000000</color>
     <color name="design_dark_default_color_background">#121212</color>
     <color name="design_dark_default_color_error">#CF6679</color>

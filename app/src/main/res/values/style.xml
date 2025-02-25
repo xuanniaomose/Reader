@@ -1,20 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <style name="xnTheme" parent="XNApp.Theme.DarkPurple">-->
-<!--        <item name="dropDownListViewStyle">@style/xnSpinnerStyle</item>-->
-<!--    </style>-->
-<!--    <style name="xnSpinnerStyle" parent="android:Widget.ListView.DropDown">-->
-<!--        <item name="textFillColor">@color/purple_700</item>-->
-<!--        <item name="android:textAlignment">center</item>-->
-<!--        <item name="divider">@color/purple_700</item>-->
-<!--        <item name="android:dividerHeight">1dp</item>-->
-<!--        <item name="android:background">@drawable/xn_spinner</item>-->
-<!--        <item name="android:backgroundTint">@color/blue_500</item>-->
-<!--        <item name="android:popupBackground">@drawable/xn_spinner_dropdown</item>-->
-<!--&lt;!&ndash;        <item name="popupMenuStyle">@style/xnSpinnerPopupMenuStyle</item>&ndash;&gt;-->
-<!--    </style>-->
-
-<!--    <style name="xnSpinnerPopupMenuStyle">-->
-<!--        <item name="popupMenuBackground">@drawable/xn_spinner_dropdown</item>-->
-<!--    </style>-->
 </resources>
