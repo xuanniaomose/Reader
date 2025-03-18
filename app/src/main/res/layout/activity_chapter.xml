@@ -123,6 +123,16 @@
         </LinearLayout>
     </LinearLayout>
 
+    <FrameLayout
+        android:id="@+id/bottomBar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lv_article"
+        app:layout_constraintBottom_toTopOf="ll_button"
+        android:background="@color/colorPrimary"
+    />
 
     <LinearLayout
         android:id="@+id/ll_button"
@@ -165,7 +175,7 @@
             android:layout_height="36dp"
             android:layout_gravity="center"
             android:src="@android:drawable/ic_lock_silent_mode_off"
-            android:background="@color/transparent"
+            android:background="@drawable/button"
         />
         <Space
             android:layout_width="0dp"
@@ -178,7 +188,7 @@
             android:layout_height="36dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_color"
-            android:background="@color/transparent"
+            android:background="@drawable/button"
         />
         <Space
             android:layout_width="0dp"
