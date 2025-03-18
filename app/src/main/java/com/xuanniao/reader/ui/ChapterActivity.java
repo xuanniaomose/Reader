@@ -2,7 +2,7 @@ package com.xuanniao.reader.ui;
 
 import android.app.*;
 import android.content.*;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.*;
 
 import android.util.Log;
@@ -10,29 +10,26 @@ import android.view.View;
 import android.widget.*;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.BookDB;
-import com.xuanniao.reader.tools.BookGet;
-import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.TTSService;
+import com.xuanniao.reader.tools.*;
+import com.xuanniao.reader.ui.bar.ColorBarFragment;
+import com.xuanniao.reader.ui.bar.TTSBarFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 public class ChapterActivity extends AppCompatActivity implements TTSService.Callback {
     String Tag = "ChapterActivity";
     TextView tv_title;
     ListView lv_article;
     LinearLayout ll_tts, ll_setting;
-    Button btn_last, btn_next, btn_before, btn_ahead, btn_pause;
+    Button btn_last, btn_next, btn_before, btn_ahead, btn_pause, btn_exit;
     ImageButton btn_back, btn_settings, btn_catalog, btn_reading, btn_color;
     public static Handler handler_paragraph;
     static List<String> paragraphList;
@@ -44,6 +41,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     private ServiceConnection conn;
     SharedPreferences sp;
     String bookName, bookCode, chapterTitle, chapterCode;
+    static int barState = 0; // 0没有弹出栏，1目录栏，2朗读栏，3颜色栏
     static int ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
     static int nowReading = 0, chapterNum, bookMark;
     static float speed, pitch;
@@ -68,7 +66,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         mManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //        createNotification();
 //        mManager.notify(1, notificationOriginal);
-        conn = new ChapterActivity.TTSServiceConn();
+        conn = new TTSServiceConn();
         sp = PreferenceManager.getDefaultSharedPreferences(this);
         speed = (float) sp.getInt("tts_speed", 10) / 10;
         pitch = (float) sp.getInt("tts_pitch", 10) / 10;
@@ -179,7 +177,8 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
             startService(startIntent);
         } else {
             tv_title.setText(chapterTitle);
-            chapterAdapter = new ChapterAdapter(ChapterActivity.this, paragraphList);
+            chapterAdapter = new ChapterAdapter(ChapterActivity.this,
+                    paragraphList, Tools.getIntColor(this, "textColor"));
             lv_article.setAdapter(chapterAdapter);
         }
         addChapterReadAndSaved();
@@ -212,6 +211,12 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 Log.d(Tag, "按下了朗读");
                 ttsAction(Constants.ACTION_PARAGRAPH, nowReading);
             }
+            if (barState != 2) controlAction(2);
+        });
+
+        btn_color = findViewById(R.id.btn_color);
+        btn_color.setOnClickListener(view -> {
+            if (barState != 3) controlAction(3);
         });
 
         btn_last = findViewById(R.id.btn_last);
@@ -263,6 +268,10 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 ttsAction(Constants.ACTION_READ, null);
             }
         });
+        btn_exit = findViewById(R.id.btn_exit);
+        btn_exit.setOnClickListener(view -> {
+            if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
+        });
     }
 
     @Override
@@ -310,6 +319,14 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         }
     }
 
+    public TTSService getTTSService() {
+        if (mTTSService != null) {
+            return mTTSService;
+        } else {
+            return null;
+        }
+    }
+
     public void ttsAction(String action, Integer index) {
         if (!mTTSService.getParagraphListExist()) {
             Log.d(Tag, "段落列表：" + paragraphList);
@@ -334,6 +351,25 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         } else {
             Toast.makeText(ChapterActivity.this,
                     "当前播放列表为空", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void controlAction(int action) {
+        if (action == 1) {
+//            getSupportFragmentManager().beginTransaction()
+//                    .replace(this.findViewById(R.id.bottomBar_container).getId(),
+//                            TTSBarFragment.newInstance())
+//                    .commitNow();
+        } else if (action == 2) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(this.findViewById(R.id.bottomBar_container).getId(),
+                            TTSBarFragment.newInstance())
+                    .commitNow();
+        } else if (action == 3) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(this.findViewById(R.id.bottomBar_container).getId(),
+                            ColorBarFragment.newInstance())
+                    .commitNow();
         }
     }
 
@@ -381,7 +417,8 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                             } else {
                                 nowReading = 0;
                             }
-                            chapterAdapter = new ChapterAdapter(ChapterActivity.this, paragraphList);
+                            chapterAdapter = new ChapterAdapter(ChapterActivity.this, paragraphList,
+                                    Tools.getIntColor(ChapterActivity.this, "textColor"));
                             lv_article.setAdapter(chapterAdapter);
                             mTTSService.setParagraphList(new ArrayList<>(paragraphList));
                             // 使用书签跳转到上次读的自然段
@@ -413,6 +450,18 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 }
             }
         };
+    }
+
+    public void setTextColor(int color) {
+        chapterAdapter.setTextColor(color);
+    }
+
+    public void setTextSize(int size) {
+        chapterAdapter.setTextSize(size);
+    }
+
+    public void setReadBackground(int color) {
+        getWindow().getDecorView().setBackgroundColor(color);
     }
 
 //

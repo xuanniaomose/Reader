@@ -91,6 +91,14 @@ public class TTSService extends Service {
         paragraphNum = 0;
     }
 
+    public void setSpeechRate(float speed) {
+        localTTS.setSpeechRate(speed);
+    }
+
+    public void setPitch(float pitch) {
+        localTTS.setPitch(pitch);
+    }
+
     public int getParagraphNum() {
         return paragraphNum;
     }

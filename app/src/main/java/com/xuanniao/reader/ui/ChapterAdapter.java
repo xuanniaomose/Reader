@@ -17,12 +17,14 @@ import java.util.List;
 public class ChapterAdapter extends ArrayAdapter<String> {
     private final String Tag = "ChapterAdapter";
     private final Context context;
+    private int textColor, textSize = 0;
     private List<String> paragraphList;
     private int paragraphNum = -1;
-    public ChapterAdapter(Context context, List<String> paragraphList) {
+    public ChapterAdapter(Context context, List<String> paragraphList, int textColor) {
         super(context, R.layout.article_i, paragraphList);
-        this.paragraphList = paragraphList;
         this.context = context;
+        this.textColor = textColor;
+        this.paragraphList = paragraphList;
     }
 
     @Override
@@ -46,11 +48,14 @@ public class ChapterAdapter extends ArrayAdapter<String> {
             viewHolder = (ViewHolder) item.getTag();
         }
         if (position == paragraphNum) {
-            viewHolder.tv_paragraph.setTextColor(getIntColor("textColorPrimary"));
+            viewHolder.tv_paragraph.setTextColor(getIntColor("colorPrimary"));
             viewHolder.tv_paragraph.setBackgroundColor(getIntColor("windowBackgroundSecondary"));
         } else {
-            viewHolder.tv_paragraph.setTextColor(getIntColor("textColor"));
+            viewHolder.tv_paragraph.setTextColor(textColor);
             viewHolder.tv_paragraph.setBackgroundColor(getIntColor("transparent"));
+            if (textSize != 0) {
+                viewHolder.tv_paragraph.setTextSize(textSize);
+            }
         }
         String paragraph = paragraphList.get(position);
 //        Log.d(Tag, "paragraph:" + paragraph);
@@ -64,6 +69,16 @@ public class ChapterAdapter extends ArrayAdapter<String> {
             this.paragraphNum = paragraphNum;
             notifyDataSetChanged();
         }
+    }
+
+    public void setTextColor(int color) {
+        this.textColor = color;
+        this.notifyDataSetInvalidated();
+    }
+
+    public void setTextSize(int size) {
+        this.textSize = size;
+        this.notifyDataSetInvalidated();
     }
 
     int getIntColor(String colorName) {

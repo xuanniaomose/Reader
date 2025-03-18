@@ -22,12 +22,13 @@
             android:orientation="horizontal"
         >
             <ImageButton
-                android:id="@+id/noteBarBack_bt"
+                android:id="@+id/btn_colorBarBack"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/button"
+                android:background="@drawable/text_btn_bg"
                 android:src="@drawable/ic_back"
             />
             <TextView
@@ -49,7 +50,7 @@
                     android:orientation="horizontal"
                 >
                     <com.xuanniao.reader.tools.ColorSelector
-                        android:id="@+id/note_colorSelector"
+                        android:id="@+id/colorSelector"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                     />
@@ -62,17 +63,16 @@
             android:layout_height="40dp"
             android:orientation="horizontal"
         >
-            <ImageButton
-                android:id="@+id/noteRect_bt"
+            <ImageView
+                android:id="@+id/rect_bt"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_margin="8dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_text"
-                android:background="@drawable/button"
             />
             <SeekBar
-                android:id="@+id/textSize_sb"
+                android:id="@+id/sb_textSize"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="6"
@@ -92,7 +92,7 @@
                 android:layout_height="match_parent"
             />
             <TextView
-                android:id="@+id/textSize_tv"
+                android:id="@+id/tv_textSize"
                 android:text="32"
                 android:textSize="16sp"
                 android:textColor="@color/white"
@@ -102,24 +102,14 @@
                 android:layout_marginEnd="5dp"
             />
             <Switch
-                android:id="@+id/test"
-                android:text="开灯/关灯"
+                android:id="@+id/sw_light"
+                android:text="开/关灯"
                 android:textColor="@color/white"
-                android:layout_width="110dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_margin="8dp"
             />
         </LinearLayout>
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/notePreview_iv"
-        android:layout_width="80dp"
-        android:layout_height="match_parent"
-        android:layout_margin="8dp"
-        android:src="@drawable/bt_rect"
-        android:visibility="gone"
-    />
 
 </LinearLayout>

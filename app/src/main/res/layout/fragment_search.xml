@@ -17,7 +17,7 @@
         app:tabIndicatorHeight="3dp"
         app:tabIndicatorFullWidth="false"
         app:tabTextColor="@color/textColorSecondary"
-        app:tabSelectedTextColor="@color/textColorPrimary"
+        app:tabSelectedTextColor="@color/colorPrimary"
         app:tabIndicator="@drawable/shape_tab_indicator"
         android:background="@color/transparent"
     />

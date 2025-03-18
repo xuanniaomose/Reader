@@ -29,7 +29,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginHorizontal="10dp"
+        android:paddingHorizontal="10dp"
     >
         <LinearLayout
             android:id="@+id/ll_setting"
@@ -120,18 +120,24 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
             />
+            <Button
+                android:id="@+id/btn_exit"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginHorizontal="15dp"
+                android:background="@drawable/ic_stop"
+            />
         </LinearLayout>
     </LinearLayout>
 
     <FrameLayout
         android:id="@+id/bottomBar_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="120dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lv_article"
-        app:layout_constraintBottom_toTopOf="ll_button"
-        android:background="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/ll_button"
+        android:background="@color/transparent"
     />
 
     <LinearLayout
@@ -162,7 +168,7 @@
 <!--            android:layout_height="36dp"-->
 <!--            android:layout_gravity="center"-->
 <!--            android:src="@drawable/ic_list"-->
-<!--            android:background="@color/transparent"-->
+<!--            android:background="@color/text_btn_bg"-->
 <!--        />-->
         <Space
             android:layout_width="0dp"
@@ -175,7 +181,7 @@
             android:layout_height="36dp"
             android:layout_gravity="center"
             android:src="@android:drawable/ic_lock_silent_mode_off"
-            android:background="@drawable/button"
+            android:background="@drawable/text_btn_bg"
         />
         <Space
             android:layout_width="0dp"
@@ -183,12 +189,12 @@
             android:layout_weight="1"
         />
         <ImageButton
-            android:id="@+id/btn_details"
+            android:id="@+id/btn_color"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_color"
-            android:background="@drawable/button"
+            android:background="@drawable/text_btn_bg"
         />
         <Space
             android:layout_width="0dp"
@@ -202,14 +208,6 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
         />
-<!--        <Button-->
-<!--            android:id="@+id/btn_reading"-->
-<!--            android:text="朗读"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            android:layout_marginHorizontal="5dp"-->
-<!--        />-->
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

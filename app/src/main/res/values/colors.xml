@@ -71,7 +71,7 @@
 
     <!-- 文字颜色 -->
     <color name="textColor">@color/gray_900</color>
-    <color name="textColorPrimary">@color/blue_500</color>
+    <color name="textColorPrimary">@color/white</color>
     <color name="textColorSecondary">@color/gray_500</color>
 
     <!-- 背景颜色 -->
