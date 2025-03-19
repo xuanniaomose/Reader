@@ -54,7 +54,6 @@
         <item name="searchViewStyle">@style/xnSearchViewStyle</item>
         <!--选择器的样式-->
         <item name="android:dropDownSpinnerStyle">@style/xnSpinnerStyle</item>
-        <!--滑动页面头的样式-->
 
 <!--        <item name="android:spinnerDropDownItemStyle">@style/xnSpinnerDropDownItemStyle</item>-->
 <!--        <item name="android:spinnerItemStyle">@style/xnSpinnerStyle</item>-->
@@ -85,6 +84,7 @@
     </style>
 
     <style name="xnSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="android:textColor">@color/colorPrimary</item>
         <!-- 设置SearchView整体背景 -->
         <item name="android:background">@drawable/search_view</item>
         <item name="android:backgroundTint">@color/colorPrimary</item>
@@ -97,7 +97,7 @@
         <item name="android:spinnerMode">dropdown</item>
         <!--下拉列表是否遮挡spinner显示框-->
         <item name="android:overlapAnchor">true</item>
-        <item name="textFillColor">@color/colorPrimaryVariant</item>
+        <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:textAlignment">center</item>
         <item name="android:divider">@color/colorPrimaryVariant</item>
         <item name="android:dividerHeight">1dp</item>

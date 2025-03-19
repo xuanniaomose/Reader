@@ -140,9 +140,11 @@ public class CatalogActivity extends AppCompatActivity {
         });
         bdb = BookDB.getInstance(this, Constants.DB_BOOK);
         BookItem bookItem = bdb.queryByFieldItem(Constants.TAB_BOOK, "bookCode", bookCode);
-        int catalogNumMark = bookItem.getBookMark() / 10000;
-        if (catalogNumMark >= 0 && catalogNumMark < catalogItem.getChapterCodeList().size()) {
-            lv_catalog.setSelection(catalogNumMark - 2);
+        if (bookItem != null) {
+            int catalogNumMark = bookItem.getBookMark() / 10000;
+            if (catalogNumMark >= 0 && catalogNumMark < catalogItem.getChapterCodeList().size()) {
+                lv_catalog.setSelection(catalogNumMark - 2);
+            }
         }
     }
 

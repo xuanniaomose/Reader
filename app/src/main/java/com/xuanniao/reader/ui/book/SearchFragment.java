@@ -19,7 +19,6 @@ import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.BookGet;
 import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -120,10 +119,10 @@ public class SearchFragment extends Fragment {
 
             }
         });
-        EditText editText = svSearch.findViewById(androidx.appcompat.R.id.search_src_text);
-        editText.setTextColor(Color.WHITE);
-//        editText.setHintTextColor(Color.GRAY);
-        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+//        EditText editText = svSearch.findViewById(androidx.appcompat.R.id.search_src_text);
+//        editText.setTextColor(Color.WHITE);
+////        editText.setHintTextColor(Color.GRAY);
+//        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         svSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

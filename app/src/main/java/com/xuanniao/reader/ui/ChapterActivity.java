@@ -149,7 +149,9 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
 //        Log.d(Tag, "chapterCodeList:" + chapterCodeList);
         bdb = BookDB.getInstance(ChapterActivity.this, Constants.DB_BOOK);
         BookItem bookItem = bdb.queryByFieldItem(Constants.TAB_BOOK, "bookCode", bookCode);
-        bookMark = bookItem.getBookMark();
+        if (bookItem != null) {
+            bookMark = bookItem.getBookMark();
+        }
 
         tv_title = findViewById(R.id.tv_title);
         tv_title.setText(chapterTitle);
@@ -453,6 +455,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     }
 
     public void setTextColor(int color) {
+        tv_title.setTextColor(color);
         chapterAdapter.setTextColor(color);
     }
 
