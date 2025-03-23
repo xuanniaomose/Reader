@@ -8,7 +8,7 @@
         <!-- 导航栏-手势条半透明透明：对于手势条就是保留那个显眼的高对比度条条，但是背景是透明的 -->
         <item name="android:windowTranslucentNavigation">true</item>
         <!-- android10及其以下的手势栏和状态栏颜色 11及以上的版本无效-->
-        <!--<item name="android:navigationBarColor">@android:color/white</item>-->
+<!--        <item name="android:navigationBarColor">@android:color/white</item>-->
 
         <!-- 主要颜色 -->
         <item name="colorPrimary">@color/colorPrimary</item>

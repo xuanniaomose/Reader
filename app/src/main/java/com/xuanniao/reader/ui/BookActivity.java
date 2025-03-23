@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
+import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -54,6 +55,7 @@ public class BookActivity extends FragmentActivity {
         // 获取读写权限
         Authorize A = new Authorize();
         A.checkReadWritePermission(this);
+        Authorize.checkCanDrawOverlay(this);
         init();
         buttonSet();
         guide();

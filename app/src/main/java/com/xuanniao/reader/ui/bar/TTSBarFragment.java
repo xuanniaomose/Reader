@@ -26,7 +26,7 @@ public class TTSBarFragment extends Fragment {
     private final String Tag = "TTSBarFragment";
     private ChapterActivity docActivity;
     private View mTTSBarFl;
-    private Switch sw_followSystem;
+    private Switch sw_followSystem, sw_continuous;
     private ImageButton btn_ttsBarBack;
     private SeekBar sb_speed, sb_pitch;
     private TextView tv_speedText, tv_pitchText;
@@ -81,6 +81,8 @@ public class TTSBarFragment extends Fragment {
                 ttsService.setPitch(ttsPitchNum);
                 sb_pitch.setProgress((int) (ttsPitchNum * 10));
             }
+            sw_continuous = mTTSBarFl.findViewById(R.id.sw_continuous);
+            sw_continuous.setChecked(sp.getBoolean("continuousRead", false));
         }
     }
 
@@ -95,8 +97,22 @@ public class TTSBarFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     disAbleSeekBar();
+                    spEditor.putBoolean("followSystem", true).apply();
                 } else {
                     enAbleSeekBar();
+                    spEditor.putBoolean("followSystem", false).apply();
+                }
+            }
+        });
+        sw_continuous.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    ttsService.setContinuousRead(true);
+                    spEditor.putBoolean("continuousRead", true).apply();
+                } else {
+                    ttsService.setContinuousRead(false);
+                    spEditor.putBoolean("continuousRead", false).apply();
                 }
             }
         });

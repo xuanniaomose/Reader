@@ -27,12 +27,17 @@ public class JsonRead {
                 platformItem.setPlatformName(platformName);
                 String platformUrl = (String) item.get("platformUrl");
                 platformItem.setPlatformUrl(platformUrl);
-                String searchPath = (String) item.get("searchPath");
-                platformItem.setSearchPath(searchPath);
                 String platformCookie = (String) item.get("platformCookie");
                 platformItem.setPlatformCookie(platformCookie);
                 String charsetName = (String) item.get("charsetName");
                 platformItem.setCharsetName(charsetName);
+
+                String searchPath = (String) item.get("searchPath");
+                platformItem.setSearchPath(searchPath);
+                String catalogPath = (String) item.get("catalogPath");
+                platformItem.setCatalogPath(catalogPath);
+                String chapterPath = (String) item.get("chapterPath");
+                platformItem.setChapterPath(chapterPath);
 
                 // 结果页面
                 JSONObject resultPage = (JSONObject) item.get("resultPage");
@@ -42,6 +47,7 @@ public class JsonRead {
                     String key = (String) resultListI.next();
                     resultList.add(key);
                 }
+//                Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
                 Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
                 platformItem.setResultPage(resultList.toArray(new String[]{}));
                 String resultError = (String) item.get("resultError");

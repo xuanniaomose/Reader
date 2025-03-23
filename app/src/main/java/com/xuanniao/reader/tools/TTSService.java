@@ -10,11 +10,16 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.*;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.RemoteViews;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -32,10 +37,10 @@ import static android.app.Notification.VISIBILITY_SECRET;
 public class TTSService extends Service {
     static String Tag = "TTSService";
     Context mContext;
-    private static RemoteViews remoteViews;
     private static TextToSpeech localTTS = null;
     private TTSBroadReceiver receiver;
     float speed, pitch;
+    boolean isContinuous = false;
     static ArrayList<String> paragraphList;
     static int paragraphNum = 0, ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
     private List<Callback> callbackList;  // 回调接口的集合
@@ -83,6 +88,7 @@ public class TTSService extends Service {
 
         notificationManager = NotificationManagerCompat.from(this);
         createNotificationChannel();
+        setLockScreen();
         super.onCreate();
     }
 
@@ -203,12 +209,16 @@ public class TTSService extends Service {
         Log.d(Tag, "localTTS:" + (localTTS != null));
         if (localTTS == null) localTTS = new TextToSpeech(
                 mContext.getApplicationContext(), new TTSOnInitListener());
+        if (num == paragraphList.size() && isContinuous) {
+            paragraphNum = 0;
+            sendTTSStateToMain(Constants.MSG_NEXT);
+        }
         if (num < 0 || num >= paragraphList.size()) {
             paragraphNum = num;
         } else {
             ttsState = 1;
             Log.d(Tag, "num:" + num + " | paragraphNum:" + paragraphNum);
-            localTTS.speak(paragraphList.get(num), 0, null, String.valueOf(paragraphNum));
+            localTTS.speak(paragraphList.get(num), 0, null, String.valueOf(num));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
         }
         updateNotification();
@@ -256,6 +266,10 @@ public class TTSService extends Service {
         msg.what = msgCode;
         msg.arg1 = paragraphNum;
         handler.sendMessage(msg);
+    }
+
+    public void setContinuousRead(boolean isContinuous) {
+        this.isContinuous = isContinuous;
     }
 
     public class TTSBroadReceiver extends BroadcastReceiver {
@@ -318,7 +332,6 @@ public class TTSService extends Service {
         }
     }
 
-
     public final class LocalBinder extends Binder {
         public TTSService getService() {
             return TTSService.this;
@@ -370,31 +383,17 @@ public class TTSService extends Service {
                     NotificationManager.IMPORTANCE_LOW
             );
             channel.setDescription("用于媒体播放控制");
-//            // 是否绕过请勿打扰模式
-//            channel.canBypassDnd();
-//            // 设置可绕过  请勿打扰模式
-//            channel.setBypassDnd(true);
-//            // 设置声音
-//            channel.setSound(null, null);
-//            // 是否允许震动
-//            channel.enableVibration(true);
-//            // 获取系统通知响铃声音的配置
-//            channel.getAudioAttributes();
-//            // 通知灯
-//            channel.enableLights(false);
-//            // 通知灯颜色
-//            channel.setLightColor(Color.RED);
-//            // 获取通知取到组
-//            channel.getGroup();
+            // 是否绕过请勿打扰模式
+            channel.canBypassDnd();
+            // 设置可绕过  请勿打扰模式
+            channel.setBypassDnd(true);
             // 应用图标右上角显示小红点
             channel.setShowBadge(false);
             // 所有情况下显示，包括锁屏
             channel.setLockscreenVisibility(VISIBILITY_SECRET);
-//            NotificationManager manager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }
-
 
     /**
      * 创建通知
@@ -414,7 +413,7 @@ public class TTSService extends Service {
         PendingIntent pending_intent_close = PendingIntent.getBroadcast(this, 2, intent_cancel, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteView.setOnClickPendingIntent(R.id.notify_btn_close, pending_intent_close);
 
-        // 上一曲
+        // 上一篇
         Intent intent_prv = new Intent();
         intent_prv.setPackage("com.xuanniao.reader");
         intent_prv.setAction(Constants.ACTION_PREVIOUS);
@@ -436,7 +435,7 @@ public class TTSService extends Service {
             remoteView.setOnClickPendingIntent(R.id.notify_btn_play, pending_intent_play);
             remoteView.setImageViewResource(R.id.notify_btn_play, R.drawable.ic_play);
         }
-        // 下一曲
+        // 下一篇
         Intent intent_next = new Intent();
         intent_next.setPackage("com.xuanniao.reader");
         intent_next.setAction(Constants.ACTION_NEXT);
@@ -458,6 +457,29 @@ public class TTSService extends Service {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // 所有情况下显示，包括锁屏
                 .setOngoing(true); // 禁止滑动删除
         return builder.build();
+    }
+
+    private void setLockScreen() {
+        // TODO: 需要修改这里，让锁屏窗口能够正常显示
+        Log.d(Tag, "创建锁屏窗口");
+        // 创建一个悬浮窗口布局
+        View view = LayoutInflater.from(this).inflate(R.layout.notification, null);
+        // 创建一个LayoutParams对象，指定悬浮窗口的大小和位置
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        layoutParams.flags = WindowManager.LayoutParams.FLAG_FULLSCREEN
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+        layoutParams.format = PixelFormat.TRANSLUCENT;
+        layoutParams.gravity = Gravity.START | Gravity.TOP;
+        layoutParams.x = 0;
+        layoutParams.y = 0;
+        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+
+        // 将悬浮窗口添加到窗口管理器中，并显示在锁屏界面上
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        windowManager.addView(view, layoutParams);
     }
 
     @Override

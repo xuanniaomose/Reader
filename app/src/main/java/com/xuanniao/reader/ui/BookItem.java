@@ -9,6 +9,7 @@ public class BookItem {
     String author;
     String synopsis;
     long renewTime;
+    int wordCount;
     List<Integer> chapterReadList;
     List<Integer> chapterSavedList;
     int chapterTotal;
@@ -43,6 +44,9 @@ public class BookItem {
 
     public void setRenewTime(long renewTime) {
         this.renewTime = renewTime;
+    }
+    public void setWordCount(int wordCount) {
+        this.wordCount = wordCount;
     }
 
     public void setChapterReadList(List<Integer> chapterReadList) {
@@ -131,6 +135,9 @@ public class BookItem {
 
     public long getRenewTime() {
         return renewTime;
+    }
+    public int getWordCount() {
+        return wordCount;
     }
 
     public List<Integer> getChapterReadList() {

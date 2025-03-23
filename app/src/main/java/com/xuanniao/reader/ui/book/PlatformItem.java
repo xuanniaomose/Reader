@@ -4,14 +4,19 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.util.Arrays;
+
 public class PlatformItem implements Parcelable {
     static String Tag = "PlatformItem";
     int ID;
     String platformName;
     String platformUrl;
-    String searchPath;
     String platformCookie;
     String charsetName;
+
+    String searchPath;
+    String catalogPath;
+    String chapterPath;
 
     String[] resultPage;
     String resultError;
@@ -56,6 +61,22 @@ public class PlatformItem implements Parcelable {
         this.searchPath = searchPath;
     }
 
+    public String getCatalogPath() {
+        return catalogPath;
+    }
+
+    public void setCatalogPath(String catalogPath) {
+        this.catalogPath = catalogPath;
+    }
+
+    public String getChapterPath() {
+        return chapterPath;
+    }
+
+    public void setChapterPath(String chapterPath) {
+        this.chapterPath = chapterPath;
+    }
+
     public String getPlatformCookie() {
         return platformCookie;
     }
@@ -79,7 +100,7 @@ public class PlatformItem implements Parcelable {
 
     public void setResultPage(String[] resultPage) {
         this.resultPage = resultPage;
-//        Log.d(Tag, "resultPage:" + Arrays.toString(resultPage));
+        Log.d(Tag, "resultPage:" + Arrays.toString(resultPage));
     }
 
     public String getResultError() {

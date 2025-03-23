@@ -3,10 +3,8 @@ package com.xuanniao.reader.ui.book;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.*;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,7 +97,7 @@ public class SearchFragment extends Fragment {
         pagerSearch.setAdapter(resultPagesAdapter);
         tabs_search.setupWithViewPager(pagerSearch);
         searchModArray = getResources().getStringArray(R.array.searchMod);
-        ArrayAdapter adapter = new ArrayAdapter(context, R.layout.item_for_custom_spinner, searchModArray);
+        ArrayAdapter adapter = new ArrayAdapter(context, R.layout.spinner_item, searchModArray);
         sp_isExact.setAdapter(adapter);
         sp_isExact.setSelection(Integer.parseInt(spConfig.getString("searchMod", "0")));
         sp_isExact.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

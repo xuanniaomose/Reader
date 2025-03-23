@@ -3,6 +3,7 @@ package com.xuanniao.reader.tools;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -105,5 +107,30 @@ public class Authorize extends Fragment {
             flag = true;
         }
         return  flag;
+    }
+
+    public static Boolean checkCanDrawOverlay(Context context) {
+        // 检查锁屏显示权限是否已授权
+        if (!Settings.canDrawOverlays(context)) {
+            // 构建一个AlertDialog，向用户解释为什么需要锁屏显示权限
+//            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+//            builder.setTitle("权限申请");
+//            builder.setMessage("锁屏显示权限允许应用在设备锁屏状态下显示一些信息，是否授权？");
+//            builder.setPositiveButton("授权", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    // 启动系统设置界面，让用户授权锁屏显示权限
+//                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+//                    intent.setData(Uri.parse("package:" + context.getPackageName()));
+//                    context.startActivity(intent);
+//                }
+//            });
+//            builder.setNegativeButton("取消", null);
+//            builder.show();
+            return false;
+        } else {
+            // 已授权，可以进行锁屏显示操作
+            return true;
+        }
     }
 }

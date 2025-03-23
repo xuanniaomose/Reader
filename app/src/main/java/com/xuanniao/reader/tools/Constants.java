@@ -20,10 +20,11 @@ public class Constants {
     public static String PARAGRAPH_NUM = "paragraphNum";
 
     // TTS消息
+    public static final int MSG_CLOSE = -1;
     public static final int MSG_STOP = 0;
     public static final int MSG_PROGRESS = 1;
     public static final int MSG_PAUSE = 2;
-    public static final int MSG_CLOSE = 3;
+    public static final int MSG_NEXT = 3;
     public static final int NOTIFICATION_CEDE = 110;
 
     // TTSService的name

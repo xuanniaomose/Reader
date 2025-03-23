@@ -49,10 +49,10 @@ public class ResultListFragment extends Fragment {
         platformItem = getArguments().getParcelable("platformItem");
         platformNum = platformItem.getID();
         Log.d(Tag, "platformNum:" + platformItem.getID());
-        fragmentView = inflater.inflate(R.layout.fragment_result_list, container, false);
+        fragmentView = inflater.inflate(R.layout.fragment_book, container, false);
         Log.d(Tag, "onCreateView " + platformNum);
         this.container = container;
-        lv_result = fragmentView.findViewById(R.id.lv_result);
+        lv_result = fragmentView.findViewById(R.id.lv_book);
         return fragmentView;
     }
 

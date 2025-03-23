@@ -2,7 +2,6 @@ package com.xuanniao.reader.ui;
 
 import android.app.*;
 import android.content.*;
-import android.graphics.drawable.Drawable;
 import android.os.*;
 
 import android.util.Log;
@@ -30,7 +29,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     ListView lv_article;
     LinearLayout ll_tts, ll_setting;
     Button btn_last, btn_next, btn_before, btn_ahead, btn_pause, btn_exit;
-    ImageButton btn_back, btn_settings, btn_catalog, btn_reading, btn_color;
+    ImageButton btn_back, btn_reader, btn_catalog, btn_reading, btn_color;
     public static Handler handler_paragraph;
     static List<String> paragraphList;
     ArrayList<String> chapterCodeList;
@@ -197,14 +196,21 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 onBackPressed();
             }
         });
-        btn_settings = findViewById(R.id.btn_settings);
-        btn_settings.setOnClickListener(new View.OnClickListener() {
+        btn_reader = findViewById(R.id.btn_reader);
+        btn_reader.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ChapterActivity.this, SettingActivity.class);
-                startActivity(intent);
+                if (barState != 2) controlAction(2);
             }
         });
+//        btn_settings = findViewById(R.id.btn_settings);
+//        btn_settings.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(ChapterActivity.this, SettingActivity.class);
+//                startActivity(intent);
+//            }
+//        });
         btn_reading = findViewById(R.id.btn_reading);
         btn_reading.setOnClickListener(view -> {
             if (ttsState == 1) {
@@ -213,7 +219,6 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 Log.d(Tag, "按下了朗读");
                 ttsAction(Constants.ACTION_PARAGRAPH, nowReading);
             }
-            if (barState != 2) controlAction(2);
         });
 
         btn_color = findViewById(R.id.btn_color);
@@ -225,16 +230,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         btn_last.setOnClickListener(view -> {
             if (chapterNum - 1 > 0) {
                 if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
-                Intent intent = new Intent(ChapterActivity.this, BookGet.class);
-                intent.putExtra("isLocal", isLocal);
-                intent.putExtra("platformID", platformID);
-                intent.putExtra("bookName", bookName);
-                intent.putExtra("bookCode", bookCode);
-                intent.putExtra("bookCode", bookCode);
-                intent.putExtra("chapterNum", chapterNum - 1);
-                intent.putExtra("chapterCode", chapterCodeList.get(chapterNum - 2));
-                intent.putExtra("chapterTitle", chapterTitleList.get(chapterNum - 2));
-                startService(intent);
+                turnPage(false);
             } else {
                 Toast.makeText(ChapterActivity.this, "没有上一章了", Toast.LENGTH_SHORT).show();
             }
@@ -242,17 +238,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         btn_next = findViewById(R.id.btn_next);
         btn_next.setOnClickListener(view -> {
             if (chapterNum + 1 <= chapterCodeList.size()) {
-                if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
-                Intent intent = new Intent(ChapterActivity.this, BookGet.class);
-                intent.putExtra("isLocal", isLocal);
-                intent.putExtra("platformID", platformID);
-                intent.putExtra("bookName", bookName);
-                intent.putExtra("bookCode", bookCode);
-                intent.putExtra("bookCode", bookCode);
-                intent.putExtra("chapterNum", chapterNum + 1);
-                intent.putExtra("chapterCode", chapterCodeList.get(chapterNum));
-                intent.putExtra("chapterTitle", chapterTitleList.get(chapterNum));
-                startService(intent);
+                turnPage(true);
             } else {
                 Toast.makeText(ChapterActivity.this, "没有下一章了", Toast.LENGTH_SHORT).show();
             }
@@ -274,6 +260,26 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         btn_exit.setOnClickListener(view -> {
             if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
         });
+    }
+
+    private void turnPage(boolean isNext) {
+        int targetNum;
+        if (isNext) {
+            targetNum = chapterNum + 1;
+        } else {
+            targetNum = chapterNum - 1;
+        }
+        if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
+        Intent intent = new Intent(ChapterActivity.this, BookGet.class);
+        intent.putExtra("isLocal", isLocal);
+        intent.putExtra("platformID", platformID);
+        intent.putExtra("bookName", bookName);
+        intent.putExtra("bookCode", bookCode);
+        intent.putExtra("bookCode", bookCode);
+        intent.putExtra("chapterNum", targetNum);
+        intent.putExtra("chapterCode", chapterCodeList.get(targetNum - 1));
+        intent.putExtra("chapterTitle", chapterTitleList.get(targetNum - 1));
+        startService(intent);
     }
 
     @Override
@@ -305,6 +311,14 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 chapterAdapter.setHighlight(-1);
                 ll_tts.setVisibility(View.GONE);
                 ll_setting.setVisibility(View.VISIBLE);
+                break;
+            case Constants.MSG_NEXT:
+                ttsState = 2;
+                chapterAdapter.setHighlight(-1);
+                ll_tts.setVisibility(View.GONE);
+                ll_setting.setVisibility(View.VISIBLE);
+
+                turnPage(true);
                 break;
             case Constants.MSG_CLOSE:
                 if (ttsState != 0) {
@@ -431,6 +445,11 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                         chapterNum = chapterItem.getChapterNum();
                         chapterCode = chapterItem.getChapterCode();
                         addChapterReadAndSaved();
+
+                        // 如果自动连读是开的
+//                        if (isContinuous) {
+                            ttsAction(Constants.ACTION_READ, null);
+//                        }
                     }
                 } else if (msg_w.what == 2) {
                     Toast.makeText(ChapterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
@@ -466,71 +485,6 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     public void setReadBackground(int color) {
         getWindow().getDecorView().setBackgroundColor(color);
     }
-
-//
-//    private void createNotification() {
-//        /* 使用安卓自带的notification */
-//        NotificationCompat.Builder builder = getNotificationBuilder();
-//        Intent intent = new Intent(this, ChapterActivity.class);
-//        builder.setContentTitle(bookName);
-//        builder.setContentText(chapterTitle);
-//
-//        builder.setSmallIcon(R.drawable.ic_book); // 至少必须有一个smallIcon，不然app崩溃
-//        builder.setAutoCancel(true);
-//        builder.setContentIntent(PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT));
-//        notificationOriginal = builder.build();
-//
-//        /* 自定义notification */
-//        NotificationCompat.Builder builder2 = getNotificationBuilder();
-//        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.notification); // 自定义view，实际是remoteView
-//        remoteViews.setTextViewText(R.id.notify_tv_bookName, "自定义通知");
-////        remoteViews.setImageViewResource(R.id.img_notification, R.drawable.img_4);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        builder2.setSmallIcon(R.drawable.ic_book);
-//        remoteViews.setOnClickPendingIntent(R.id.notify_tv_bookName, pendingIntent); // 设置点击事件
-//
-//        notificationCustom = builder2.build();
-//        notificationCustom.contentIntent = pendingIntent; // 赋值
-//        notificationCustom.contentView = remoteViews; // 赋值可见是将我们声明的remoteView赋给了notification中的contentView
-//        notificationCustom.when = System.currentTimeMillis();
-//    }
-//
-//    /**
-//     * Android 8.0 系统，Google引入通知渠道，提高用户体验，方便用户管理通知信息，同时也提高了通知到达率
-//     * 什么是通知渠道呢？顾名思义，就是每条通知都要属于一个对应的渠道。每个App都可以自由地创建当前App拥有哪些通知渠道，但是这些通知渠道的控制权都是掌握在用户手上的。用户可以自由地选择这些通知渠道的重要程度，是否响铃、是否振动、或者是否要关闭这个渠道的通知。
-//     * 当build.gradle中targetSdkVersion设置大于等于26。这时如果不对通知渠道适配，通知就无法显示。
-//     */
-//    private NotificationCompat.Builder getNotificationBuilder() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            NotificationChannel channel = new NotificationChannel("channel_id", "channel_name",
-//                    NotificationManager.IMPORTANCE_HIGH);
-//            //是否绕过请勿打扰模式
-//            channel.canBypassDnd();
-//            //通知灯
-//            channel.enableLights(true);
-//            //锁屏显示通知
-////            channel.setLockscreenVisibility(VISIBILITY_SECRET);
-//            //闪关灯的灯光颜色
-//            channel.setLightColor(Color.RED);
-//            //桌面launcher的消息角标
-//            channel.canShowBadge();
-//            //是否允许震动
-//            channel.enableVibration(true);
-//            //获取系统通知响铃声音的配置
-//            channel.getAudioAttributes();
-//            //获取通知取到组
-//            channel.getGroup();
-//            //设置可绕过  请勿打扰模式
-//            channel.setBypassDnd(true);
-//            //设置震动模式
-//            channel.setVibrationPattern(new long[]{100, 100, 200});
-//            //是否会有灯光
-//            channel.shouldShowLights();
-//            mManager.createNotificationChannel(channel);
-//        }
-//
-//        return new NotificationCompat.Builder(this, "channel_id");
-//    }
 
     @Override
     public void onBackPressed() {
