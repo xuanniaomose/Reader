@@ -177,7 +177,7 @@ public class TTSService extends Service {
         public void onDone(String utteranceId) {
             // 播放完成
             if (paragraphNum < paragraphList.size()) {
-                paragraphNum ++;
+                paragraphNum++;
                 ttsStart(paragraphNum);
             } else {
                 // 播完发送停止信号
@@ -209,17 +209,17 @@ public class TTSService extends Service {
         Log.d(Tag, "localTTS:" + (localTTS != null));
         if (localTTS == null) localTTS = new TextToSpeech(
                 mContext.getApplicationContext(), new TTSOnInitListener());
-        if (num == paragraphList.size() && isContinuous) {
-            paragraphNum = 0;
-            sendTTSStateToMain(Constants.MSG_NEXT);
-        }
-        if (num < 0 || num >= paragraphList.size()) {
-            paragraphNum = num;
-        } else {
+        if (num >= 0 && num < paragraphList.size()) {
             ttsState = 1;
             Log.d(Tag, "num:" + num + " | paragraphNum:" + paragraphNum);
             localTTS.speak(paragraphList.get(num), 0, null, String.valueOf(num));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
+        } else if (num == paragraphList.size() && isContinuous) {
+            Log.d(Tag, "num = " + num);
+            paragraphNum = 0;
+            sendTTSStateToMain(Constants.MSG_NEXT);
+        } else {
+//            sendTTSStateToMain(Constants.MSG_ERROR);
         }
         updateNotification();
     }

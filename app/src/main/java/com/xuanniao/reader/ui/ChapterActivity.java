@@ -351,6 +351,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
             action = (Objects.equals(action, Constants.ACTION_READ))?
                     Constants.ACTION_PARAGRAPH : action;
             index = nowReading;
+            Log.d(Tag, "action:" + action);
         }
         if (paragraphList != null && !paragraphList.isEmpty()) {
             Intent intent = new Intent();
