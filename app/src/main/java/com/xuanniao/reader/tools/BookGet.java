@@ -143,7 +143,7 @@ public class BookGet extends Service {
         if (chapterCode != null) {
             url = url + "/" + chapterCode + ".html";
         } else {
-            url = url + "/";
+            url = url + platformItem.getCatalogPath();
 //            url = url  + ".html";
         }
         Log.d("url", url);
@@ -401,27 +401,36 @@ public class BookGet extends Service {
                     catalogFormatJson = JSONObject.parseObject(platformItem.getCatalogPageFormat());
                     if (catalogFormatJson == null) return null;
                     JSONArray findList = catalogFormatJson.getJSONArray("catalogList");
-                    Document doc = Jsoup.parseBodyFragment(htmlContent);
+                    Document doc = Jsoup.parse(htmlContent);
+//                    Document doc = Jsoup.parseBodyFragment(htmlContent);
                     JSONArray bookNameStep = catalogFormatJson.getJSONArray("bookName");
-                    String bookName = getAttr(bookNameStep, doc.body());
+                    String bookName = getAttr(bookNameStep, doc.head());
                     catalogItem.setBookName(bookName);
+
+                    JSONArray authorStep = catalogFormatJson.getJSONArray("author");
+                    if (authorStep != null) {
+                        String author = getAttr(authorStep, doc.head());
+                    }
+
                     Elements catalogAttrs = switchActionToElements(findList, doc);
                     if (catalogAttrs == null) return null;
                     JSONArray chapterCodeStep = catalogFormatJson.getJSONArray("chapterCode");
                     JSONArray chapterTitleStep = catalogFormatJson.getJSONArray("chapterTitle");
                     for (Element catalogAttr : catalogAttrs) {
+                        Log.d(Tag, "catalogAttr:" + catalogAttr.text());
                         String chapterCode = getAttr(chapterCodeStep, catalogAttr);
                         catalogItem.addChapterCode(chapterCode);
                         String chapterTitle = getAttr(chapterTitleStep, catalogAttr);
                         catalogItem.addChapterTitle(chapterTitle);
+                        Log.d(Tag, "chapterTitle:" + chapterTitle + "  chapterCode:" + chapterCode);
                     }
                 } catch (JSONException e) {
                     Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                     return null;
                 }
                 Log.d(Tag, "结束匹配CatalogList");
-                figures = String.valueOf(catalogItem.getChapterCodeList().size()).length();
-                figures = (figures < 3)? 4 : figures;
+//                figures = String.valueOf(catalogItem.getChapterCodeList().size()).length();
+//                figures = (figures < 3)? 4 : figures;
             }
         }
         return catalogItem;
@@ -480,29 +489,29 @@ public class BookGet extends Service {
     private Elements switchActionToElements(JSONArray actionArray, Document doc) {
         Element el = null;
         Elements elements = null;
-//        Log.d(Tag, "actionArray.length():" + actionArray.size());
+        Log.d(Tag, "actionArray.length():" + actionArray.size());
         for (int i = 0; i < actionArray.size(); i++) {
-//            Log.d(Tag, "i:" + i);
+            Log.d(Tag, "i:" + i);
             try {
                 JSONObject actionStep = actionArray.getJSONObject(i);
                 String action = actionStep.getString("action");
-//                Log.d(Tag, "action:" + action);
+                Log.d(Tag, "action:" + action);
                 switch (action) {
                     case "select":
                         String selectBy = actionStep.getString("by");
-//                        Log.d(Tag, "selectBy:" + selectBy);
+                        Log.d(Tag, "selectBy:" + selectBy);
                         String selectGet = actionStep.getString("get");
                         String from = actionStep.getString("from");
-//                        Log.d(Tag, "selectGet:" + selectGet);
+                        Log.d(Tag, "selectGet:" + selectGet);
                         if (selectBy != null && i == 0) {
                             elements = doc.select(selectBy);
-//                            Log.d(Tag, "i=0 elements:" + elements.html());
+                            Log.d(Tag, "i=0 elements:" + elements.text());
                         } else if (selectBy != null && i > 0 && el != null) {
                             elements = el.select(selectBy);
-//                            Log.d(Tag, "i>0 elements:" + elements.html());
+                            Log.d(Tag, "i>0 elements:" + elements.text());
                         }
                         if (i == actionArray.size() - 1) {
-//                            Log.d(Tag, "i=max elements:" + elements.html());
+                            Log.d(Tag, "i=max elements:" + elements.html());
                             if (from != null) {
                                  elements.subList(Integer.parseInt(from), elements.size());
                             }
@@ -510,7 +519,7 @@ public class BookGet extends Service {
                         }
                         if (elements != null && selectGet != null) {
                             el = elements.get(Integer.parseInt(selectGet));
-//                            Log.d(Tag, "el:" + el.html());
+                            Log.d(Tag, "el:" + el.html());
                         }
                         break;
                 }

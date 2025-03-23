@@ -65,9 +65,12 @@ public class PlatformDB extends SQLiteOpenHelper {
                 "ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "platformName VARCHAR NOT NULL," +
                 "platformUrl VARCHAR," +
-                "searchPath VARCHAR," +
                 "platformCookie VARCHAR," +
                 "charsetName VARCHAR," +
+
+                "searchPath VARCHAR," +
+                "catalogPath VARCHAR," +
+                "chapterPath VARCHAR," +
 
                 "resultPage VARCHAR," +
                 "resultError VARCHAR," +
@@ -310,9 +313,12 @@ public class PlatformDB extends SQLiteOpenHelper {
         values.put("ID", platformItem.getID());
         values.put("platformName", platformItem.getPlatformName());
         values.put("platformUrl", platformItem.getPlatformUrl());
-        values.put("searchPath", platformItem.getSearchPath());
         values.put("platformCookie", platformItem.getPlatformCookie());
         values.put("charsetName", platformItem.getCharsetName());
+
+        values.put("searchPath", platformItem.getSearchPath());
+        values.put("catalogPath", platformItem.getCatalogPath());
+        values.put("chapterPath", platformItem.getChapterPath());
 
         values.put("resultPage", String.join(",", platformItem.getResultPage()));
         values.put("resultError", platformItem.getResultError());
@@ -338,21 +344,24 @@ public class PlatformDB extends SQLiteOpenHelper {
             platform.setID(Integer.parseInt(cursor.getString(0)));
             platform.setPlatformName(cursor.getString(1));
             platform.setPlatformUrl(cursor.getString(2));
-            platform.setSearchPath(cursor.getString(3));
-            platform.setPlatformCookie(cursor.getString(4));
-            platform.setCharsetName(cursor.getString(5));
+            platform.setPlatformCookie(cursor.getString(3));
+            platform.setCharsetName(cursor.getString(4));
 
-            platform.setResultPage(cursor.getString(6).split(","));
-            platform.setResultError(cursor.getString(7));
-            platform.setResultPageFormat(cursor.getString(8));
+            platform.setSearchPath(cursor.getString(5));
+            platform.setCatalogPath(cursor.getString(6));
+            platform.setChapterPath(cursor.getString(7));
 
-            platform.setCatalogPage(cursor.getString(9).split(","));
-            platform.setCatalogError(cursor.getString(10));
-            platform.setCatalogPageFormat(cursor.getString(11));
+            platform.setResultPage(cursor.getString(8).split(","));
+            platform.setResultError(cursor.getString(9));
+            platform.setResultPageFormat(cursor.getString(10));
 
-            platform.setChapterPage(cursor.getString(12).split(","));
-            platform.setChapterError(cursor.getString(13));
-            platform.setChapterPageFormat(cursor.getString(14));
+            platform.setCatalogPage(cursor.getString(11).split(","));
+            platform.setCatalogError(cursor.getString(12));
+            platform.setCatalogPageFormat(cursor.getString(13));
+
+            platform.setChapterPage(cursor.getString(14).split(","));
+            platform.setChapterError(cursor.getString(15));
+            platform.setChapterPageFormat(cursor.getString(16));
             list.add(platform);
         }
         return list;

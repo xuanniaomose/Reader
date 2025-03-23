@@ -212,7 +212,7 @@ public class FileTools {
             }
             is.close();
             String platformJson = sb.toString();
-            if (platformJson.contains("error") || platformJson.equals("0")) {
+            if (platformJson.equals("0")) {
                 PlatformItem platformItem = new PlatformItem();
                 platformItem.setPlatformName("0");
                 platformList.add(platformItem);
