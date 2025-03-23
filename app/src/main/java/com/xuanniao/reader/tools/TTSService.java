@@ -40,7 +40,7 @@ public class TTSService extends Service {
     private static TextToSpeech localTTS = null;
     private TTSBroadReceiver receiver;
     float speed, pitch;
-    boolean isContinuous = false;
+    boolean isContinuous;
     static ArrayList<String> paragraphList;
     static int paragraphNum = 0, ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
     private List<Callback> callbackList;  // 回调接口的集合
@@ -55,11 +55,12 @@ public class TTSService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent arg0) {
+    public IBinder onBind(Intent intent) {
         Log.d(Tag, "mContext:" + mContext);
         Log.i(Tag, "onBind: TTSService");
-        speed = arg0.getFloatExtra("tts_speed", 1.0F);
-        pitch = arg0.getFloatExtra("tts_pitch", 1.0F);
+        speed = intent.getFloatExtra("tts_speed", 1.0F);
+        pitch = intent.getFloatExtra("tts_pitch", 1.0F);
+        isContinuous = intent.getBooleanExtra("continuousRead", false);
         return new LocalBinder();
     }
 

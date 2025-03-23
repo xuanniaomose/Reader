@@ -68,7 +68,6 @@ public class TTSBarFragment extends Fragment {
             tv_pitchNum = mTTSBarFl.findViewById(R.id.tv_pitchNum);
             tv_pitchText = mTTSBarFl.findViewById(R.id.tv_pitchText);
 
-            Log.d(Tag,"成功获取mTTSBarFl");
             btn_ttsBarBack = mTTSBarFl.findViewById(R.id.btn_ttsBarBack);
             sw_followSystem = mTTSBarFl.findViewById(R.id.sw_followSystem);
             sw_followSystem.setChecked(sp.getBoolean("followSystem", false));

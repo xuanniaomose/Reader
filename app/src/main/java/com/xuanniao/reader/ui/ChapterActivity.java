@@ -73,6 +73,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         Intent serviceIntent = new Intent(this, TTSService.class);
         serviceIntent.putExtra("tts_speed", speed);
         serviceIntent.putExtra("tts_pitch", pitch);
+        serviceIntent.putExtra("continuousRead", sp.getBoolean("continuousRead", false));
         bindService(serviceIntent, conn, BIND_AUTO_CREATE);
     }
 
@@ -104,6 +105,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
 //        serviceIntent.putExtra("tts_speed", speed);
 //        serviceIntent.putExtra("tts_pitch", pitch);
         serviceIntent.putStringArrayListExtra("paragraphList", new ArrayList<>(paragraphList));
+        serviceIntent.putExtra("continuousRead", sp.getBoolean("continuousRead", false));
         startService(serviceIntent);
     }
 
@@ -448,9 +450,9 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                         addChapterReadAndSaved();
 
                         // 如果自动连读是开的
-//                        if (isContinuous) {
+                        if (sp.getBoolean("continuousRead", false) && bookMark == 0) {
                             ttsAction(Constants.ACTION_READ, null);
-//                        }
+                        }
                     }
                 } else if (msg_w.what == 2) {
                     Toast.makeText(ChapterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
