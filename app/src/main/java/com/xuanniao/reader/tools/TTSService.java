@@ -7,9 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.*;
@@ -26,7 +23,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.ui.ChapterActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -252,12 +248,13 @@ public class TTSService extends Service {
         if (notificationManager != null) {
             notificationManager.cancel(Constants.NOTIFICATION_CEDE);
         }
-        if (paragraphList != null) {
-            paragraphList = null;
-        }
         if (localTTS != null) {
+            Log.d(Tag, "tts shutdown");
             localTTS.shutdown();
             ttsState = 0;
+        }
+        if (paragraphList != null) {
+            paragraphList = null;
         }
         sendTTSStateToMain(Constants.MSG_CLOSE);
     }
@@ -341,7 +338,7 @@ public class TTSService extends Service {
 
     /** 回调接口 */
     public interface Callback {
-        public void onChange(Message msg);
+        public void onTTSChange(Message msg);
     }
 
     /**
@@ -357,7 +354,7 @@ public class TTSService extends Service {
         public void handleMessage(Message msg) {
             // 遍历集合，通知所有的实现类，即activity
             for (TTSService.Callback callback : callbackList) {
-                callback.onChange(msg);
+                callback.onTTSChange(msg);
             }
         }
     };
@@ -486,7 +483,7 @@ public class TTSService extends Service {
     @Override
     public void onDestroy() {
         Log.i(Tag, "onDestroy: ttsService");
-        if (localTTS != null) ttsShutdown();
+        if (localTTS != null) localTTS = null;
         if (receiver != null) {
             getApplicationContext().unregisterReceiver(receiver);
         }

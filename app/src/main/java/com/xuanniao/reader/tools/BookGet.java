@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class BookGet extends Service {
     static String Tag = "BookGet";
@@ -153,12 +154,13 @@ public class BookGet extends Service {
             cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
         }
         Log.d(Tag, "Cookie:" + cookie);
-        Request request = new Request
-                .Builder()
+        Request request = new Request.Builder()
                 .url(url)
                 .headers(setSearchHeaders(cookie))
                 .build();
-        OkHttpClient okHttpClient = new OkHttpClient();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(12, TimeUnit.SECONDS)
+                .build();
         Call call = okHttpClient.newCall(request);
         call.enqueue(new Callback() {
             @Override

@@ -52,11 +52,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ll_bookName"
-        app:layout_constraintBottom_toTopOf="@+id/ll_button"
+        app:layout_constraintBottom_toTopOf="@+id/ll_bottom"
     />
 
     <LinearLayout
-        android:id="@+id/ll_button"
+        android:id="@+id/ll_bottom"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

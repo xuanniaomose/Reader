@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.tools.*;
 import com.xuanniao.reader.ui.bar.ColorBarFragment;
+import com.xuanniao.reader.ui.bar.ReadBarFragment;
 import com.xuanniao.reader.ui.bar.TTSBarFragment;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     ListView lv_article;
     LinearLayout ll_tts, ll_setting;
     Button btn_last, btn_next, btn_before, btn_ahead, btn_pause, btn_exit;
-    ImageButton btn_back, btn_reader, btn_catalog, btn_reading, btn_color;
+    ImageButton btn_back, btn_catalog, btn_reading, btn_color;
     public static Handler handler_paragraph;
     static List<String> paragraphList;
     ArrayList<String> chapterCodeList;
@@ -114,17 +115,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         public void onServiceConnected(ComponentName name, IBinder binder) {
             mTTSService = ((TTSService.LocalBinder) binder).getService();
             mTTSService.addCallback((TTSService.Callback) ChapterActivity.this);
-            // 从服务中获取播放状态
             nowReading = (mTTSService != null)? mTTSService.getParagraphNum() : 0;
-//            if (mTTSService == null) {
-//                ttsState = 0;
-//            } else if (mTTSService.getIsPlaying()) {
-//                ttsState = 1;
-//            } else if (!mTTSService.getIsPlaying()) {
-//                ttsState = 2;
-//            } else {
-//                ttsState = -1;
-//            }
             Log.i(Tag, "ttsState:" + (mTTSService != null));
         }
         @Override
@@ -169,15 +160,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         handler_paragraph = setParagraphHandler();
         if (paragraphList == null || paragraphList.isEmpty()) {
             Log.d(Tag, "页面初始化获取文本");
-            Intent startIntent = new Intent(ChapterActivity.this, BookGet.class);
-            startIntent.putExtra("isLocal", isLocal);
-            startIntent.putExtra("platformID", platformID);
-            startIntent.putExtra("bookName", bookName);
-            startIntent.putExtra("bookCode", bookCode);
-            startIntent.putExtra("chapterNum", chapterNum);
-            startIntent.putExtra("chapterCode", chapterCode);
-            startIntent.putExtra("chapterTitle", chapterTitle);
-            startService(startIntent);
+            turnPageTo(chapterNum);
         } else {
             tv_title.setText(chapterTitle);
             chapterAdapter = new ChapterAdapter(ChapterActivity.this,
@@ -196,13 +179,6 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
             @Override
             public void onClick(View view) {
                 onBackPressed();
-            }
-        });
-        btn_reader = findViewById(R.id.btn_reader);
-        btn_reader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (barState != 2) controlAction(2);
             }
         });
 //        btn_settings = findViewById(R.id.btn_settings);
@@ -232,7 +208,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         btn_last.setOnClickListener(view -> {
             if (chapterNum - 1 > 0) {
                 if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
-                turnPage(false);
+                turnPageTo(chapterNum - 1);
             } else {
                 Toast.makeText(ChapterActivity.this, "没有上一章了", Toast.LENGTH_SHORT).show();
             }
@@ -240,7 +216,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         btn_next = findViewById(R.id.btn_next);
         btn_next.setOnClickListener(view -> {
             if (chapterNum + 1 <= chapterCodeList.size()) {
-                turnPage(true);
+                turnPageTo(chapterNum + 1);
             } else {
                 Toast.makeText(ChapterActivity.this, "没有下一章了", Toast.LENGTH_SHORT).show();
             }
@@ -255,7 +231,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
             if (ttsState == 1) {
                 ttsAction(Constants.ACTION_PAUSE, null);
             } else if (ttsState == 2) {
-                ttsAction(Constants.ACTION_READ, null);
+                ttsAction(Constants.ACTION_PARAGRAPH, nowReading);
             }
         });
         btn_exit = findViewById(R.id.btn_exit);
@@ -264,19 +240,12 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         });
     }
 
-    private void turnPage(boolean isNext) {
-        int targetNum;
-        if (isNext) {
-            targetNum = chapterNum + 1;
-        } else {
-            targetNum = chapterNum - 1;
-        }
+    private void turnPageTo(int targetNum) {
         if (mTTSService != null) ttsAction(Constants.ACTION_STOP, null);
         Intent intent = new Intent(ChapterActivity.this, BookGet.class);
         intent.putExtra("isLocal", isLocal);
         intent.putExtra("platformID", platformID);
         intent.putExtra("bookName", bookName);
-        intent.putExtra("bookCode", bookCode);
         intent.putExtra("bookCode", bookCode);
         intent.putExtra("chapterNum", targetNum);
         intent.putExtra("chapterCode", chapterCodeList.get(targetNum - 1));
@@ -285,7 +254,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     }
 
     @Override
-    public void onChange(Message msg) {
+    public void onTTSChange(Message msg) {
         switch (msg.what) {
             case Constants.MSG_PROGRESS:
                 nowReading = msg.arg1;
@@ -296,9 +265,12 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 if (ttsState != 1) {
                     ttsState = 1;
                     btn_pause.setBackground(getDrawable(R.drawable.ic_pause));
-//                    btn_reading.setText("退出朗读");
                     ll_tts.setVisibility(View.VISIBLE);
                     ll_setting.setVisibility(View.GONE);
+//                    getSupportFragmentManager().beginTransaction()
+//                            .replace(this.findViewById(R.id.ll_top).getId(),
+//                                    ReadBarFragment.newInstance())
+//                            .commitNow();
                 }
                 break;
             case Constants.MSG_PAUSE:
@@ -320,7 +292,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 ll_tts.setVisibility(View.GONE);
                 ll_setting.setVisibility(View.VISIBLE);
 
-                turnPage(true);
+                turnPageTo(chapterNum + 1);
                 break;
             case Constants.MSG_CLOSE:
                 if (ttsState != 0) {
@@ -330,6 +302,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                     chapterAdapter.setHighlight(-1);
                     ll_tts.setVisibility(View.GONE);
                     ll_setting.setVisibility(View.VISIBLE);
+                    this.finish();
                 }
                 break;
 //                Toast.makeText(ChapterActivity.this,
@@ -450,8 +423,9 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                         addChapterReadAndSaved();
 
                         // 如果自动连读是开的
-                        if (sp.getBoolean("continuousRead", false) && bookMark == 0) {
-                            ttsAction(Constants.ACTION_READ, null);
+                        boolean continuousRead = sp.getBoolean("continuousRead", false);
+                        if (continuousRead && (bookMark / 10000) != chapterNum) {
+                            ttsAction(Constants.ACTION_PARAGRAPH, nowReading);
                         }
                     }
                 } else if (msg_w.what == 2) {

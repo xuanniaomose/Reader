@@ -3,8 +3,6 @@ package com.xuanniao.reader.ui.bar;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,11 +18,9 @@ import com.xuanniao.reader.ui.ChapterActivity;
 
 import java.lang.reflect.Field;
 
-import static android.content.Context.MODE_PRIVATE;
-
 public class TTSBarFragment extends Fragment {
     private final String Tag = "TTSBarFragment";
-    private ChapterActivity docActivity;
+    private ChapterActivity chapterActivity;
     private View mTTSBarFl;
     private Switch sw_followSystem, sw_continuous;
     private ImageButton btn_ttsBarBack;
@@ -45,12 +41,12 @@ public class TTSBarFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         mTTSBarFl = inflater.inflate(R.layout.bar_tts, container, false);
-        docActivity = (ChapterActivity) getActivity();
-        if (docActivity != null) {
+        chapterActivity = (ChapterActivity) getActivity();
+        if (chapterActivity != null) {
 //            sp = docActivity.getSharedPreferences("info", MODE_PRIVATE);
-            sp = PreferenceManager.getDefaultSharedPreferences(docActivity);
+            sp = PreferenceManager.getDefaultSharedPreferences(chapterActivity);
+            spEditor = sp.edit();
         }
-        spEditor = sp.edit();
         init();
         setListener();
         return mTTSBarFl;
@@ -71,8 +67,8 @@ public class TTSBarFragment extends Fragment {
             btn_ttsBarBack = mTTSBarFl.findViewById(R.id.btn_ttsBarBack);
             sw_followSystem = mTTSBarFl.findViewById(R.id.sw_followSystem);
             sw_followSystem.setChecked(sp.getBoolean("followSystem", false));
-            if (docActivity != null) {
-                ttsService = docActivity.getTTSService();
+            if (chapterActivity != null) {
+                ttsService = chapterActivity.getTTSService();
                 // 设置语速
                 ttsService.setSpeechRate(ttsSpeedNum);
                 sb_speed.setProgress((int) (ttsSpeedNum * 10));
@@ -200,7 +196,7 @@ public class TTSBarFragment extends Fragment {
             int colorId = field.getInt(null);
             // 通过id获取颜色的int值
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                defColor = docActivity.getResources().getColor(
+                defColor = chapterActivity.getResources().getColor(
                         colorId, getContext().getTheme());
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
