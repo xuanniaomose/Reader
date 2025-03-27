@@ -73,7 +73,7 @@ public class ColorBarFragment extends Fragment {
             @Override
             public void onClick(ColorSelector.ColorTab tab, int position) {
                 // makeText的第二个参数，即输出参数，也要求必须是string
-                Toast.makeText(getActivity(), String.valueOf(tab.getColorInt()), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getActivity(), String.valueOf(tab.getColorInt()), Toast.LENGTH_SHORT).show();
                 docActivity.setTextColor(tab.getColorInt());
             }
         });

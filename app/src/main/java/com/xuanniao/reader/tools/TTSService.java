@@ -23,6 +23,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.ui.ChapterActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class TTSService extends Service {
     private TTSBroadReceiver receiver;
     float speed, pitch;
     boolean isContinuous;
+    String bookName, chapterTitle;
     static ArrayList<String> paragraphList;
     static int paragraphNum = 0, ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
     private List<Callback> callbackList;  // 回调接口的集合
@@ -56,7 +58,7 @@ public class TTSService extends Service {
         Log.i(Tag, "onBind: TTSService");
         speed = intent.getFloatExtra("tts_speed", 1.0F);
         pitch = intent.getFloatExtra("tts_pitch", 1.0F);
-        isContinuous = intent.getBooleanExtra("continuousRead", false);
+        isContinuous = intent.getBooleanExtra("isContinuousRead", false);
         return new LocalBinder();
     }
 
@@ -89,6 +91,12 @@ public class TTSService extends Service {
         super.onCreate();
     }
 
+    public void setTitle(String bookName, String chapterTitle) {
+        Log.d(Tag, "bookName:" + bookName);
+        this.bookName = bookName;
+        this.chapterTitle = chapterTitle;
+    }
+
     public void setParagraphList(ArrayList<String> list) {
         paragraphList = list;
         paragraphNum = 0;
@@ -110,7 +118,7 @@ public class TTSService extends Service {
         return localTTS.isSpeaking();
     }
 
-    public boolean getParagraphListExist() {
+    public boolean isParagraphListExist() {
         Log.d(Tag, "paragraphList:" + paragraphList);
         return paragraphList != null && !paragraphList.isEmpty();
     }
@@ -155,6 +163,11 @@ public class TTSService extends Service {
                         int result1 = localTTS.setPitch(pitch);
                         int result2 = localTTS.setSpeechRate(speed);
                         localTTS.setOnUtteranceProgressListener(new ttsUtteranceListener());
+
+                        Message msg = new Message();
+                        msg.what = 1;
+                        Log.d(Tag, "send message ttsOK");
+                        ChapterActivity.handler_ttsOK.sendMessage(msg);
                     } else {
                         Log.e("TTS", "中文语音数据未完整下载");
                     }
@@ -203,7 +216,7 @@ public class TTSService extends Service {
      */
     public void ttsStart(Integer num) {
         if (paragraphList == null || paragraphList.isEmpty()) return;
-        Log.d(Tag, "localTTS:" + (localTTS != null));
+//        Log.d(Tag, "localTTS:" + (localTTS != null));
         if (localTTS == null) localTTS = new TextToSpeech(
                 mContext.getApplicationContext(), new TTSOnInitListener());
         if (num >= 0 && num < paragraphList.size()) {
@@ -398,7 +411,7 @@ public class TTSService extends Service {
      * @return 通知
      */
     private Notification buildNotification() {
-        Log.d(Tag, "create builder: " + Constants.CHANNEL_ID);
+//        Log.d(Tag, "create builder: " + Constants.CHANNEL_ID);
         RemoteViews remoteView = new RemoteViews(mContext.getPackageName(), R.layout.notification); // 自定义view，实际是remoteView
 //        Intent intent_chapter = new Intent(mContext, ChapterActivity.class);
 //        PendingIntent pending_intent_go = PendingIntent.getActivity(mContext, 1, intent_chapter, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -440,10 +453,12 @@ public class TTSService extends Service {
         PendingIntent pending_intent_next = PendingIntent.getBroadcast(this, 6, intent_next, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteView.setOnClickPendingIntent(R.id.notify_btn_next, pending_intent_next);
 
-        remoteView.setTextViewText(R.id.notify_tv_bookName, "第128节");
+//        Log.d(Tag, "bookName:" + bookName);
+        remoteView.setTextViewText(R.id.notify_tv_bookName, bookName);
         remoteView.setInt(R.id.progressBar, "setMax", paragraphList.size());
 
-        remoteView.setTextViewText(R.id.notify_tv_chapterTitle, String.valueOf(paragraphNum));
+//        Log.d(Tag, "chapterTitle:" + chapterTitle);
+        remoteView.setTextViewText(R.id.notify_tv_chapterTitle, chapterTitle);
         remoteView.setInt(R.id.progressBar, "setProgress", paragraphNum);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext, Constants.CHANNEL_ID)
@@ -474,7 +489,6 @@ public class TTSService extends Service {
         layoutParams.y = 0;
         layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
         layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-
         // 将悬浮窗口添加到窗口管理器中，并显示在锁屏界面上
         WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         windowManager.addView(view, layoutParams);

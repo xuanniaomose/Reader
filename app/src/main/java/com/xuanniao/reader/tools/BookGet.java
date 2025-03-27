@@ -49,6 +49,7 @@ public class BookGet extends Service {
         new Thread(() -> {
             Log.d(Tag, "onStartCommand - startId = " + startId + ", " +
                     "Thread ID = " + Thread.currentThread().getId());
+            boolean isManual = intent.getBooleanExtra("isManual", true);
             int isLocal = intent.getIntExtra("isLocal", 0);
             int platformID = intent.getIntExtra("platformID", -1);
             String bookName = intent.getStringExtra("bookName");
@@ -62,19 +63,19 @@ public class BookGet extends Service {
             if (isLocal == 1) {
                 if (chapterCode == null) {
                     CatalogItem catalogItem = FileTools.loadLocalCatalog(this, bookName);
-                    sendMessage(1, null, catalogItem, null);
+                    sendMessage(1, isManual, null, catalogItem, null);
                 } else {
                     ChapterItem chapterItem = FileTools.
                             loadLocalChapter(this, bookName, chapterNum, chapterTitle);
-                    sendMessage(1, null, null, chapterItem);
+                    sendMessage(1, isManual, null, null, chapterItem);
                 }
             } else if (isLocal == 2) {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
-                    loadLocalAssets(this, platformItem, bookName, bookCode, chapterNum, chapterCode);
+                    loadLocalAssets(this, isManual, platformItem, bookName, bookCode, chapterNum, chapterCode);
                 } else {
                     for (PlatformItem platformItem : platformList) {
-                        loadLocalAssets(this, platformItem, bookName, bookCode, chapterNum, chapterCode);
+                        loadLocalAssets(this, isManual, platformItem, bookName, bookCode, chapterNum, chapterCode);
                     }
                 }
             } else {
@@ -82,10 +83,10 @@ public class BookGet extends Service {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
                     Log.d(Tag, "chapterNum:" + chapterNum + " | chapterCode:" + chapterCode);
-                    getHtml(this, platformItem, bookName, bookCode, chapterNum, chapterCode, chapterTitle);
+                    getHtml(this, isManual, platformItem, bookName, bookCode, chapterNum, chapterCode, chapterTitle);
                 } else {
                     for (PlatformItem platformItem : platformList) {
-                        getHtml(this, platformItem, bookName, bookCode, chapterNum, chapterCode, chapterTitle);
+                        getHtml(this, isManual, platformItem, bookName, bookCode, chapterNum, chapterCode, chapterTitle);
                     }
                 }
             }
@@ -128,7 +129,7 @@ public class BookGet extends Service {
      * @param bookCode 书籍编号
      * @param chapterCode 章节编号
      */
-    private void getHtml(Context context, PlatformItem platformItem, String bookName,
+    private void getHtml(Context context, boolean isManual, PlatformItem platformItem, String bookName,
                          String bookCode, int chapterNum, String chapterCode, String chapterTitle) {
         Log.d(Tag, "path:" + platformItem.getSearchPath());
         if (bookCode == null && platformItem.getSearchPath().endsWith("index.php")) {
@@ -170,13 +171,13 @@ public class BookGet extends Service {
                 if (chapterCode == null) {
                     if (bookCode == null) {
                         List<BookItem> resultList = htmlToBookList(platformItem, bookName, htmlContent);
-                        sendMessage(platformItem.getID(), resultList, null, null);
+                        sendMessage(platformItem.getID(), isManual, resultList, null, null);
                     } else {
                         CatalogItem catalogItem = htmlToCatalog(platformItem, htmlContent);
-                        sendMessage(platformItem.getID(), null, catalogItem, null);
+                        sendMessage(platformItem.getID(), isManual, null, catalogItem, null);
                     }
                 } else {
-                    chapterSend(context, platformItem, htmlContent, bookName, chapterCode, chapterTitle, chapterNum);
+                    chapterSend(context, isManual, platformItem, htmlContent, bookName, chapterCode, chapterTitle, chapterNum);
                 }
             }
 
@@ -205,10 +206,10 @@ public class BookGet extends Service {
                     if (chapterCode == null) {
                         if (bookCode == null) {
                             List<BookItem> resultList = htmlToBookList(platformItem, bookName, htmlContent);
-                            sendMessage(1, resultList, null, null);
+                            sendMessage(1, isManual, resultList, null, null);
                         } else {
                             CatalogItem catalogItem = htmlToCatalog(platformItem, htmlContent);
-                            sendMessage(1, null, catalogItem, null);
+                            sendMessage(1, isManual, null, catalogItem, null);
                             if (catalogItem != null && catalogItem.getChapterCodeList() != null
                                     && !catalogItem.getChapterCodeList().isEmpty()) {
                                 catalogItem.setBookCode(bookCode);
@@ -216,7 +217,7 @@ public class BookGet extends Service {
                             }
                         }
                     } else {
-                        chapterSend(context, platformItem, htmlContent,
+                        chapterSend(context, isManual, platformItem, htmlContent,
                                 bookName, chapterCode, chapterTitle, chapterNum);
                     }
                 } catch (IOException e) {
@@ -491,29 +492,29 @@ public class BookGet extends Service {
     private Elements switchActionToElements(JSONArray actionArray, Document doc) {
         Element el = null;
         Elements elements = null;
-        Log.d(Tag, "actionArray.length():" + actionArray.size());
+//        Log.d(Tag, "actionArray.length():" + actionArray.size());
         for (int i = 0; i < actionArray.size(); i++) {
-            Log.d(Tag, "i:" + i);
+//            Log.d(Tag, "i:" + i);
             try {
                 JSONObject actionStep = actionArray.getJSONObject(i);
                 String action = actionStep.getString("action");
-                Log.d(Tag, "action:" + action);
+//                Log.d(Tag, "action:" + action);
                 switch (action) {
                     case "select":
                         String selectBy = actionStep.getString("by");
-                        Log.d(Tag, "selectBy:" + selectBy);
+//                        Log.d(Tag, "selectBy:" + selectBy);
                         String selectGet = actionStep.getString("get");
                         String from = actionStep.getString("from");
-                        Log.d(Tag, "selectGet:" + selectGet);
+//                        Log.d(Tag, "selectGet:" + selectGet);
                         if (selectBy != null && i == 0) {
                             elements = doc.select(selectBy);
-                            Log.d(Tag, "i=0 elements:" + elements.text());
+//                            Log.d(Tag, "i=0 elements:" + elements.text());
                         } else if (selectBy != null && i > 0 && el != null) {
                             elements = el.select(selectBy);
-                            Log.d(Tag, "i>0 elements:" + elements.text());
+//                            Log.d(Tag, "i>0 elements:" + elements.text());
                         }
                         if (i == actionArray.size() - 1) {
-                            Log.d(Tag, "i=max elements:" + elements.html());
+//                            Log.d(Tag, "i=max elements:" + elements.html());
                             if (from != null) {
                                  elements.subList(Integer.parseInt(from), elements.size());
                             }
@@ -521,7 +522,7 @@ public class BookGet extends Service {
                         }
                         if (elements != null && selectGet != null) {
                             el = elements.get(Integer.parseInt(selectGet));
-                            Log.d(Tag, "el:" + el.html());
+//                            Log.d(Tag, "el:" + el.html());
                         }
                         break;
                 }
@@ -558,16 +559,17 @@ public class BookGet extends Service {
 //                            Log.d(Tag, "i=0 elements:" + elements.html());
                         } else if (selectBy != null && i > 0 && el != null) {
                             elements = el.select(selectBy);
-//                            Log.d(Tag, "i>0 elements:" + elements.html());
+                            Log.d(Tag, "i>0 elements:" + elements.html());
                         }
                         if (elements != null && selectGet != null) {
                             el = elements.get(Integer.parseInt(selectGet));
-//                            Log.d(Tag, "el:" + el.html());
+                            Log.d(Tag, "el:" + el.html());
                         }
                         break;
                     case "elementGetVar":
                         int getNum = Integer.parseInt(actionStep.getString("get"));
                         if (el != null) {
+                            Log.d(Tag, "el:" + el.html());
                             str = el.data().toString().split("var")[getNum];
                         }
                         break;
@@ -585,9 +587,8 @@ public class BookGet extends Service {
                         }
                         break;
                 }
-            } catch (JSONException e) {
-                Log.e(Tag, "json数据格式错误，请核对后重新加载");
-//                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+            } catch (JSONException | IndexOutOfBoundsException e) {
+                Toast.makeText(this, "数据无法解析", Toast.LENGTH_SHORT).show();
                 return null;
             }
         }
@@ -602,7 +603,7 @@ public class BookGet extends Service {
             Element element = null;
             for (int a = 0; a < attrStepJson.size(); a++) {
                 JSONObject step = attrStepJson.getJSONObject(a);
-                Log.d(Tag, "actionStep:" + step);
+//                Log.d(Tag, "actionStep:" + step);
                 String action = step.getString("action");
                 switch (action) {
                     case "select":
@@ -654,7 +655,7 @@ public class BookGet extends Service {
                         break;
                 }
             }
-        } catch (JSONException e) {
+        } catch (JSONException | IndexOutOfBoundsException e) {
             Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
             return null;
         }
@@ -717,7 +718,8 @@ public class BookGet extends Service {
         return null;
     }
 
-    private void sendMessage(int platformID, List<BookItem> bookList, CatalogItem catalogItem, ChapterItem chapterItem) {
+    private void sendMessage(int platformID, boolean isManual, List<BookItem> bookList,
+                             CatalogItem catalogItem, ChapterItem chapterItem) {
         Message msg = new Message();
         boolean b = bookList == null || bookList.isEmpty();
         boolean c = catalogItem == null || catalogItem.getChapterCodeList() == null || catalogItem.getChapterCodeList().isEmpty();
@@ -734,24 +736,6 @@ public class BookGet extends Service {
                 msg.obj = bookList;
             }
             SearchFragment.handler_setResult.sendMessage(msg);
-        } else if (b & c & !p) {
-            Log.d(Tag, "解读出来是段落列表");
-            if (chapterItem.getChapter() == null || chapterItem.getChapter().isEmpty()) {
-                if (chapterItem.getIsLocal() == 1) {
-                    // 本地没有
-                    msg.what = 3;
-                    msg.arg1 = platformID;
-                    msg.obj = chapterItem;
-                } else {
-                    // 网络错误
-                    msg.what = 2;
-                }
-            } else {
-                msg.what = 1;
-                msg.arg1 = platformID;
-                msg.obj = chapterItem;
-            }
-            ChapterActivity.handler_paragraph.sendMessage(msg);
         } else if (b & !c & p){
             Log.d(Tag, "解读出来是目录列表");
             if (Objects.equals(catalogItem.getChapterCodeList().get(0), "")) {
@@ -763,6 +747,27 @@ public class BookGet extends Service {
                 msg.obj = catalogItem;
             }
             CatalogActivity.handler_catalog.sendMessage(msg);
+        } else if (b & c & !p) {
+            Log.d(Tag, "解读出来是段落列表");
+            if (chapterItem.getChapter() == null || chapterItem.getChapter().isEmpty()) {
+                if (chapterItem.getIsLocal() == 1) {
+                    // 本地没有
+                    msg.what = 3;
+                    msg.arg1 = platformID;
+                    msg.arg2 = (isManual)? 1 : 0;
+                    msg.obj = chapterItem;
+                } else {
+                    // 网络错误
+                    msg.what = 2;
+                    msg.arg2 = (isManual)? 1 : 0;
+                }
+            } else {
+                msg.what = 1;
+                msg.arg1 = platformID;
+                msg.arg2 = (isManual)? 1 : 0;
+                msg.obj = chapterItem;
+            }
+            ChapterActivity.handler_paragraph.sendMessage(msg);
         } else {
             Log.d(Tag, "程序BUG");
             msg.what = 0;
@@ -776,7 +781,8 @@ public class BookGet extends Service {
      * @param bookCode 书籍代码
      * @param chapterCode 章节代码
      */
-    private void loadLocalAssets(Context context, PlatformItem platformItem, String bookName, String bookCode, int chapterNum, String chapterCode) {
+    private void loadLocalAssets(Context context, boolean isManual, PlatformItem platformItem,
+                                 String bookName, String bookCode, int chapterNum, String chapterCode) {
         String fileName = null;
         fileName = (bookCode == null)? bookName : bookCode;
         fileName = (chapterCode == null)? fileName : chapterCode;
@@ -798,21 +804,21 @@ public class BookGet extends Service {
         if (htmlContent != null) {
             if (chapterCode == null && bookCode == null) {
                 List<BookItem> bookList = htmlToBookList(platformItem, bookName, htmlContent);
-                sendMessage(platformItem.getID(), bookList, null, null);
+                sendMessage(platformItem.getID(), isManual, bookList, null, null);
             } else if (chapterCode == null && bookCode != null) {
                 CatalogItem catalogItem = htmlToCatalog(platformItem, htmlContent);
-                sendMessage(1, null, catalogItem, null);
+                sendMessage(1, isManual, null, catalogItem, null);
                 if (catalogItem != null && !catalogItem.getChapterCodeList().isEmpty()) {
                     FileTools.newBook(context, catalogItem);
                 }
             } else {
-                chapterSend(context, platformItem, htmlContent,
+                chapterSend(context, isManual, platformItem, htmlContent,
                         bookName, chapterCode, "", chapterNum);
             }
         }
     }
 
-    private void chapterSend(Context context, PlatformItem platformItem, String htmlContent,
+    private void chapterSend(Context context, boolean isManual, PlatformItem platformItem, String htmlContent,
                              String bookName, String chapterCode, String chapterTitle, int chapterNum) {
         Log.d(Tag, "输出到段落");
         ChapterItem chapterItem = htmlToChapter(platformItem, htmlContent);
@@ -822,7 +828,7 @@ public class BookGet extends Service {
             chapterItem.setTitle(chapterTitle);
             chapterItem.setChapterNum(chapterNum);
         }
-        sendMessage(platformItem.getID(), null, null, chapterItem);
+        sendMessage(platformItem.getID(), isManual, null, null, chapterItem);
         if (chapterItem != null && chapterItem.getChapter() != null
                 && !chapterItem.getChapter().isEmpty()) {
             FileTools.chapterSave(context, chapterItem);

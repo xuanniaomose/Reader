@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.tools.ReadControl;
 import com.xuanniao.reader.tools.TTSService;
 import com.xuanniao.reader.ui.ChapterActivity;
 
@@ -29,6 +30,7 @@ public class TTSBarFragment extends Fragment {
     private TextView tv_speedNum, tv_pitchNum;
     SharedPreferences sp;
     SharedPreferences.Editor spEditor;
+    private ReadControl readControl;
     private TTSService ttsService;
     private float ttsPitchNum, ttsSpeedNum;
 
@@ -53,10 +55,10 @@ public class TTSBarFragment extends Fragment {
     }
 
     private void init() {
+        readControl = chapterActivity.getReadControl();
         ttsSpeedNum = sp.getFloat("speed", 1.0f);
         ttsPitchNum = sp.getFloat("pitch", 1.0f);
         if (mTTSBarFl != null) {
-
             sb_speed = mTTSBarFl.findViewById(R.id.sb_speed);
             tv_speedNum = mTTSBarFl.findViewById(R.id.tv_speedNum);
             tv_speedText = mTTSBarFl.findViewById(R.id.tv_speedText);
@@ -68,7 +70,7 @@ public class TTSBarFragment extends Fragment {
             sw_followSystem = mTTSBarFl.findViewById(R.id.sw_followSystem);
             sw_followSystem.setChecked(sp.getBoolean("followSystem", false));
             if (chapterActivity != null) {
-                ttsService = chapterActivity.getTTSService();
+                ttsService = readControl.getTTSService();
                 // 设置语速
                 ttsService.setSpeechRate(ttsSpeedNum);
                 sb_speed.setProgress((int) (ttsSpeedNum * 10));
@@ -77,7 +79,7 @@ public class TTSBarFragment extends Fragment {
                 sb_pitch.setProgress((int) (ttsPitchNum * 10));
             }
             sw_continuous = mTTSBarFl.findViewById(R.id.sw_continuous);
-            sw_continuous.setChecked(sp.getBoolean("continuousRead", false));
+            sw_continuous.setChecked(sp.getBoolean("isContinuousRead", false));
         }
     }
 
@@ -104,10 +106,10 @@ public class TTSBarFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
                     ttsService.setContinuousRead(true);
-                    spEditor.putBoolean("continuousRead", true).apply();
+                    spEditor.putBoolean("isContinuousRead", true).apply();
                 } else {
                     ttsService.setContinuousRead(false);
-                    spEditor.putBoolean("continuousRead", false).apply();
+                    spEditor.putBoolean("isContinuousRead", false).apply();
                 }
             }
         });
