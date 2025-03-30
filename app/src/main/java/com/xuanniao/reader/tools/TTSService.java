@@ -222,8 +222,18 @@ public class TTSService extends Service {
         if (num >= 0 && num < paragraphList.size()) {
             ttsState = 1;
             Log.d(Tag, "num:" + num + " | paragraphNum:" + paragraphNum);
-            String paragraph = paragraphList.get(num);
-            localTTS.speak(paragraph, 0, null, String.valueOf(num));
+//            String text = paragraphList.get(num);
+            StringBuilder text = new StringBuilder();
+            for (int i = num; i < paragraphList.size(); i++) {
+                String paragraph = paragraphList.get(i);
+                text.append("\r\n").append(paragraph);
+                if (text.length() > 1000) {
+                    num = i;
+                    paragraphNum = i;
+                    break;
+                }
+            }
+            localTTS.speak(text, 0, null, String.valueOf(num));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
         } else if (num == paragraphList.size() && isContinuous) {
             Log.d(Tag, "num = " + num);
