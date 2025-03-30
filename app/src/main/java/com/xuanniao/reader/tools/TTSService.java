@@ -227,11 +227,10 @@ public class TTSService extends Service {
             for (int i = num; i < paragraphList.size(); i++) {
                 String paragraph = paragraphList.get(i);
                 text.append("\r\n").append(paragraph);
-                if (text.length() > 1000) {
-                    num = i;
-                    paragraphNum = i;
-                    break;
-                }
+                if (text.length() > 2000) break;
+                num = i;
+                paragraphNum = i;
+                Log.d(Tag, "paragraphNum:" + paragraphNum);
             }
             localTTS.speak(text, 0, null, String.valueOf(num));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
