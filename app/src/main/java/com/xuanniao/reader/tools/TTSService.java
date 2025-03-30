@@ -222,7 +222,8 @@ public class TTSService extends Service {
         if (num >= 0 && num < paragraphList.size()) {
             ttsState = 1;
             Log.d(Tag, "num:" + num + " | paragraphNum:" + paragraphNum);
-            localTTS.speak(paragraphList.get(num), 0, null, String.valueOf(num));
+            String paragraph = paragraphList.get(num);
+            localTTS.speak(paragraph, 0, null, String.valueOf(num));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
         } else if (num == paragraphList.size() && isContinuous) {
             Log.d(Tag, "num = " + num);
@@ -255,6 +256,11 @@ public class TTSService extends Service {
         }
         stopForeground(true);
         sendTTSStateToMain(Constants.MSG_STOP);
+    }
+
+    public void ttsRead(int logNum) {
+        localTTS.speak(Constants.getLogInfo(logNum),
+                0, null, String.valueOf(logNum));
     }
 
     public void ttsShutdown() {
@@ -338,6 +344,11 @@ public class TTSService extends Service {
                     Log.i(Tag, "耳机拔出");
                     // 如果耳机拨出时暂停播放
                     ttsPause();
+                    break;
+                case Constants.ACTION_TEXT:
+                    Log.i(Tag, "朗读信息");
+                    int logNum = intent.getIntExtra("logNum", 0);
+                    ttsRead(logNum);
                     break;
             }
         }

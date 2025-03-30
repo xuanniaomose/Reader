@@ -94,19 +94,21 @@ public class ReadControl {
             action = (Objects.equals(action, Constants.ACTION_READ))?
                     Constants.ACTION_PARAGRAPH : action;
             index = (index == null)? nowReading : index;
-            Log.d(Tag, "action:" + action);
         }
+        Log.d(Tag, "action:" + action);
         if (paragraphList != null && !paragraphList.isEmpty()) {
             ttsService.setTitle(bookName, chapterTitle);
             Intent intent = new Intent();
             intent.setAction(action);
             intent.setPackage("com.xuanniao.reader");
             Log.d(Tag, "列表项：" + index);
-            if (index != null) {
+            if (index != null && index >= 0) {
                 intent.putExtra("paragraphNum", index);
                 intent.putExtra("tts_pitch", pitch);
                 intent.putExtra("tts_speed", speed);
-                intent.putExtra(Constants.ACTION_PARAGRAPH, index);
+//                intent.putExtra(Constants.ACTION_PARAGRAPH, index);
+            } else if (index != null){
+                intent.putExtra("logNum", index);
             }
             chapterActivity.sendBroadcast(intent);
         } else {

@@ -202,7 +202,11 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         intent.putExtra("chapterNum", targetNum);
         intent.putExtra("chapterCode", chapterCodeList.get(targetNum - 1));
         intent.putExtra("chapterTitle", chapterTitleList.get(targetNum - 1));
-        startService(intent);
+        try {
+            startService(intent);
+        } catch (IllegalStateException e) {
+            readControl.ttsAction(Constants.ACTION_TEXT, -1);
+        }
     }
 
     @Override

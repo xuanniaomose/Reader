@@ -458,6 +458,7 @@ public class BookGet extends Service {
                     Document doc = Jsoup.parseBodyFragment(htmlContent);
                     JSONArray titleStep = chapterFormatJson.getJSONArray("title");
                     String title = getAttr(titleStep, doc.body());
+                    if (title == null) return null;
                     chapterItem.setTitle(title);
                     JSONArray findList = chapterFormatJson.getJSONArray("paragraphList");
                     if (Arrays.asList(chapterPage).contains("paragraph")) {
@@ -526,7 +527,7 @@ public class BookGet extends Service {
                         }
                         break;
                 }
-            } catch (JSONException e) {
+            } catch (JSONException | IndexOutOfBoundsException e) {
                 Log.e(Tag, "json数据格式错误，请核对后重新加载");
 //                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                 return null;
@@ -588,7 +589,7 @@ public class BookGet extends Service {
                         break;
                 }
             } catch (JSONException | IndexOutOfBoundsException e) {
-                Toast.makeText(this, "数据无法解析", Toast.LENGTH_SHORT).show();
+                Log.d(Tag, "数据无法解析:" + e);
                 return null;
             }
         }
@@ -612,7 +613,7 @@ public class BookGet extends Service {
                         if (selectBy != null) {
                             elements = htmlListItem.select(selectBy);
                         }
-                        if (elements != null && selectGet != null) {
+                        if (elements != null && !elements.isEmpty() && selectGet != null) {
                             element = elements.get(Integer.parseInt(selectGet));
                         }
                         break;
@@ -656,7 +657,7 @@ public class BookGet extends Service {
                 }
             }
         } catch (JSONException | IndexOutOfBoundsException e) {
-            Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+            Log.d(Tag, "json数据格式错误，请核对后重新加载:" + e);
             return null;
         }
         return str;
@@ -709,8 +710,8 @@ public class BookGet extends Service {
                         String[] sa = str.split(actionStep.getString("by"));
                         return sa;
                 }
-            } catch (JSONException e) {
-                Log.e(Tag, "json数据格式错误，请核对后重新加载");
+            } catch (JSONException | IndexOutOfBoundsException e) {
+                Log.e(Tag, "json数据格式错误，请核对后重新加载:" + e);
 //                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                 return null;
             }
@@ -827,11 +828,14 @@ public class BookGet extends Service {
             chapterItem.setChapterCode(chapterCode);
             chapterItem.setTitle(chapterTitle);
             chapterItem.setChapterNum(chapterNum);
-        }
-        sendMessage(platformItem.getID(), isManual, null, null, chapterItem);
-        if (chapterItem != null && chapterItem.getChapter() != null
-                && !chapterItem.getChapter().isEmpty()) {
-            FileTools.chapterSave(context, chapterItem);
+            sendMessage(platformItem.getID(), isManual, null, null, chapterItem);
+            if (chapterItem.getChapter() != null && !chapterItem.getChapter().isEmpty()) {
+                FileTools.chapterSave(context, chapterItem);
+            }
+        } else {
+            chapterItem = new ChapterItem();
+            chapterItem.setBookName(bookName);
+            sendMessage(platformItem.getID(), isManual, null, null, chapterItem);
         }
     }
 

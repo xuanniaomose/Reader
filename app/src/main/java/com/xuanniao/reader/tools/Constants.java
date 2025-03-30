@@ -29,6 +29,7 @@ public class Constants {
 
     // TTSService的name
     // 朗读段落
+    public static final String ACTION_TEXT = "com.xuanniao.reader.text";
     public static final String ACTION_PARAGRAPH = "com.xuanniao.reader.paragraph";
     // 暂停
     public static final String ACTION_PAUSE = "com.xuanniao.reader.pause";
@@ -43,4 +44,19 @@ public class Constants {
     public static final String ACTION_CLOSE = "com.xuanniao.reader.close";
     // seekbar手动控制
     public static final String ACTION_SEEK ="com.xuanniao.reader.seek";
+
+    public static String getLogInfo(int logNum) {
+        switch (logNum) {
+            case -1:
+                return "后台时长过长，朗读已停止";
+            case -2:
+                return "json数据格式错误，请核对后重新加载";
+            case -3:
+                return "数据无法解析";
+            case -4:
+                return "程序错误";
+            default:
+                return "别听了 不想读了";
+        }
+    }
 }
