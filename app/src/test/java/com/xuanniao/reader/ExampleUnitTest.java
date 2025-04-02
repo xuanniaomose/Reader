@@ -12,6 +12,8 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+        String s = "返回：(1)\\/最新网址:";
+        s = s.replaceAll("返回：\\(.*\\)\\\\/", "替换成功");
+        System.out.print(s);
     }
 }

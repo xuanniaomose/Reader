@@ -64,8 +64,8 @@
         <SeekBarPreference
             app:key="tts_speed"
             app:title="默认朗读速度(数值需要除以10)"
-            app:defaultValue="10"
-            android:max="40"
+            app:defaultValue="25"
+            android:max="50"
             app:showSeekBarValue="true"
         />
         <SeekBarPreference

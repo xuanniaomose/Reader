@@ -62,12 +62,19 @@ public class FileTools {
      */
     public static int chapterSave(Context context, ChapterItem chapterItem) {
         String formatNum = figuresNum(chapterItem.getBookName(), chapterItem.getChapterNum());
-        if (formatNum.equals("-1") || formatNum.equals("-2")) return Integer.parseInt(formatNum);
+        if (formatNum.equals("-1") || formatNum.equals("-2")) {
+            return Integer.parseInt(formatNum);
+        }
         int emptyNum = 0;
         for (String s : chapterItem.getChapter()) {
-            if (s.trim().isEmpty()) emptyNum += 1;
+            if (s.trim().isEmpty()) {
+                emptyNum += 1;
+            }
         }
-        if (emptyNum == chapterItem.getChapter().size()) return Integer.parseInt(formatNum);
+        Log.d(Tag, "emptyNum:" + emptyNum + " | size:" + chapterItem.getChapter().size());
+        if (emptyNum == chapterItem.getChapter().size()) {
+            return Integer.parseInt(formatNum);
+        }
         String chapterFileName = formatNum + chapterItem.getTitle() + ".txt";
         try {
             DocumentFile chapterFile = getDocumentFile(context, chapterItem.getBookName(), chapterFileName);

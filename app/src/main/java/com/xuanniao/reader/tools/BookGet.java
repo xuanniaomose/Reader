@@ -429,6 +429,7 @@ public class BookGet extends Service {
                     }
                 } catch (JSONException e) {
                     Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+                    Log.e(Tag, "e:" + e.getMessage());
                     return null;
                 }
                 Log.d(Tag, "结束匹配CatalogList");
@@ -441,7 +442,7 @@ public class BookGet extends Service {
 
     private ChapterItem htmlToChapter(PlatformItem platformItem, String htmlContent) {
         ChapterItem chapterItem = new ChapterItem();
-//        Log.d(Tag, "htmlContent:" + htmlContent);
+        Log.d(Tag, "htmlContent:" + htmlContent);
         String chapterError = platformItem.getChapterError();
         if (htmlContent.contains(chapterError) || htmlContent.equals("0")) {
             chapterItem.setTitle("");
@@ -450,7 +451,7 @@ public class BookGet extends Service {
             Log.d(Tag, "开始匹配ChapterList");
             if (htmlContent != null) {
                 String[] chapterPage = platformItem.getChapterPage();
-                Log.d(Tag, "chapterPage:" + Arrays.toString(chapterPage));
+//                Log.d(Tag, "chapterPage:" + Arrays.toString(chapterPage));
                 JSONObject chapterFormatJson = null;
                 try {
                     chapterFormatJson = JSONObject.parseObject(platformItem.getChapterPageFormat());
@@ -503,19 +504,19 @@ public class BookGet extends Service {
                 switch (action) {
                     case "select":
                         String selectBy = actionStep.getString("by");
-//                        Log.d(Tag, "selectBy:" + selectBy);
+                        Log.d(Tag, "selectBy:" + selectBy);
                         String selectGet = actionStep.getString("get");
                         String from = actionStep.getString("from");
-//                        Log.d(Tag, "selectGet:" + selectGet);
+                        Log.d(Tag, "selectGet:" + selectGet);
                         if (selectBy != null && i == 0) {
                             elements = doc.select(selectBy);
-//                            Log.d(Tag, "i=0 elements:" + elements.text());
+                            Log.d(Tag, "i=0 elements:" + elements.text());
                         } else if (selectBy != null && i > 0 && el != null) {
                             elements = el.select(selectBy);
-//                            Log.d(Tag, "i>0 elements:" + elements.text());
+                            Log.d(Tag, "i>0 elements:" + elements.text());
                         }
                         if (i == actionArray.size() - 1) {
-//                            Log.d(Tag, "i=max elements:" + elements.html());
+                            Log.d(Tag, "i=max elements:" + elements.html());
                             if (from != null) {
                                  elements.subList(Integer.parseInt(from), elements.size());
                             }
@@ -523,12 +524,13 @@ public class BookGet extends Service {
                         }
                         if (elements != null && selectGet != null) {
                             el = elements.get(Integer.parseInt(selectGet));
-//                            Log.d(Tag, "el:" + el.html());
+                            Log.d(Tag, "el:" + el.html());
                         }
                         break;
                 }
             } catch (JSONException | IndexOutOfBoundsException e) {
-                Log.e(Tag, "json数据格式错误，请核对后重新加载");
+                Log.e(Tag, "json数据格式错误，请核对后重新加载:" + e);
+                Log.e(Tag, "e:" + e.getMessage());
 //                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                 return null;
             }

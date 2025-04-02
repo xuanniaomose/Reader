@@ -35,8 +35,6 @@ public class ReadControl {
     public void connect(ChapterActivity chapterActivity) {
         if (conn == null) conn = new TTSServiceConn();
         Intent serviceIntent = new Intent(chapterActivity, TTSService.class);
-        serviceIntent.putExtra("tts_speed", speed);
-        serviceIntent.putExtra("tts_pitch", pitch);
         serviceIntent.putExtra("isContinuousRead", sp.getBoolean("isContinuousRead", false));
         chapterActivity.bindService(serviceIntent, conn, BIND_AUTO_CREATE);
     }
@@ -60,12 +58,10 @@ public class ReadControl {
     /** 开始tts服务并传输数据 变更列表后需要保证通知到各个组件再播放 */
     public void startTTSService(List<String> paragraphList) {
         Log.d(Tag, "push service paragraphList: " + paragraphList);
-        speed = (float) sp.getInt("tts_speed", 10) / 10;
+        speed = (float) sp.getInt("tts_speed", 25) / 10;
         pitch = (float) sp.getInt("tts_pitch", 10) / 10;
         Intent serviceIntent = new Intent();
         serviceIntent.setClass(chapterActivity, TTSService.class);
-        serviceIntent.putExtra("tts_speed", speed);
-        serviceIntent.putExtra("tts_pitch", pitch);
         serviceIntent.putStringArrayListExtra("paragraphList", new ArrayList<>(paragraphList));
         serviceIntent.putExtra("continuousRead", sp.getBoolean("continuousRead", false));
         chapterActivity.startService(serviceIntent);
@@ -104,9 +100,6 @@ public class ReadControl {
             Log.d(Tag, "列表项：" + index);
             if (index != null && index >= 0) {
                 intent.putExtra("paragraphNum", index);
-                intent.putExtra("tts_pitch", pitch);
-                intent.putExtra("tts_speed", speed);
-//                intent.putExtra(Constants.ACTION_PARAGRAPH, index);
             } else if (index != null){
                 intent.putExtra("logNum", index);
             }

@@ -30,9 +30,8 @@ public class TTSBarFragment extends Fragment {
     private TextView tv_speedNum, tv_pitchNum;
     SharedPreferences sp;
     SharedPreferences.Editor spEditor;
-    private ReadControl readControl;
     private TTSService ttsService;
-    private float ttsPitchNum, ttsSpeedNum;
+    private float ttsPitch, ttsSpeed;
 
     public static TTSBarFragment newInstance() {
         return new TTSBarFragment();
@@ -55,9 +54,9 @@ public class TTSBarFragment extends Fragment {
     }
 
     private void init() {
-        readControl = chapterActivity.getReadControl();
-        ttsSpeedNum = sp.getFloat("speed", 1.0f);
-        ttsPitchNum = sp.getFloat("pitch", 1.0f);
+        ReadControl readControl = chapterActivity.getReadControl();
+        ttsSpeed = (float) sp.getInt("speed", 25) / 10;
+        ttsPitch = (float) sp.getInt("pitch", 10) / 10;
         if (mTTSBarFl != null) {
             sb_speed = mTTSBarFl.findViewById(R.id.sb_speed);
             tv_speedNum = mTTSBarFl.findViewById(R.id.tv_speedNum);
@@ -72,11 +71,11 @@ public class TTSBarFragment extends Fragment {
             if (chapterActivity != null) {
                 ttsService = readControl.getTTSService();
                 // 设置语速
-                ttsService.setSpeechRate(ttsSpeedNum);
-                sb_speed.setProgress((int) (ttsSpeedNum * 10));
+                sb_speed.setProgress((int) (ttsSpeed * 10));
+                tv_speedNum.setText(String.valueOf(ttsSpeed));
                 // 设置语调
-                ttsService.setPitch(ttsPitchNum);
-                sb_pitch.setProgress((int) (ttsPitchNum * 10));
+                sb_pitch.setProgress((int) (ttsPitch * 10));
+                tv_pitchNum.setText(String.valueOf(ttsPitch));
             }
             sw_continuous = mTTSBarFl.findViewById(R.id.sw_continuous);
             sw_continuous.setChecked(sp.getBoolean("isContinuousRead", false));
@@ -115,24 +114,34 @@ public class TTSBarFragment extends Fragment {
         });
         sb_speed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                tv_speedNum.setText(String.valueOf(
+                        (float) seekBar.getProgress() / 10));
+            }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 float speed = (float) seekBar.getProgress() / 10;
                 ttsService.setSpeechRate(speed);
+                tv_speedNum.setText(String.valueOf(speed));
+                spEditor.putInt("tts_speed", seekBar.getProgress()).apply();
             }
         });
         sb_pitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                tv_pitchNum.setText(String.valueOf(
+                        (float) seekBar.getProgress() / 10));
+            }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 float pitch = (float) seekBar.getProgress() / 10;
                 ttsService.setPitch(pitch);
+                tv_pitchNum.setText(String.valueOf(pitch));
+                spEditor.putInt("tts_pitch", seekBar.getProgress()).apply();
             }
         });
         // ToggleButton的使用方法
@@ -158,21 +167,19 @@ public class TTSBarFragment extends Fragment {
     }
 
     private void enAbleSeekBar() {
-        ttsSpeedNum = sp.getFloat("speed", 1.0f);
         tv_speedText.setTextColor(getIntColor("textColorPrimary"));
         sb_speed.setEnabled(true);
         sb_speed.setClickable(true);
         sb_speed.setFocusable(true);
         tv_speedNum.setTextColor(getIntColor("textColorPrimary"));
-        tv_speedNum.setText(String.valueOf(ttsSpeedNum));
+        tv_speedNum.setText(String.valueOf(ttsSpeed));
 
-        ttsPitchNum = sp.getFloat("pitch", 1.0f);
         tv_pitchText.setTextColor(getIntColor("textColorPrimary"));
         sb_pitch.setEnabled(true);
         sb_pitch.setClickable(true);
         sb_pitch.setFocusable(true);
         tv_pitchNum.setTextColor(getIntColor("textColorPrimary"));
-        tv_pitchNum.setText(String.valueOf(ttsSpeedNum));
+        tv_pitchNum.setText(String.valueOf(ttsSpeed));
     }
 
     private void disAbleSeekBar() {

@@ -2,10 +2,7 @@ package com.xuanniao.reader.tools;
 
 import android.Manifest;
 import android.app.*;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
@@ -22,6 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.ui.ChapterActivity;
 
@@ -46,18 +44,15 @@ public class TTSService extends Service {
 
     public TTSService() {}
 
-    public TTSService(Context context, float speed, float pitch) {
+    public TTSService(Context context) {
         this.mContext = context;
-        this.speed = speed;
-        this.pitch = pitch;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(Tag, "mContext:" + mContext);
-        Log.i(Tag, "onBind: TTSService");
-        speed = intent.getFloatExtra("tts_speed", 1.0F);
-        pitch = intent.getFloatExtra("tts_pitch", 1.0F);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+        speed = (float) sp.getInt("tts_speed", 255) / 10;
+        pitch = (float) sp.getInt("tts_pitch", 10) / 10;
         isContinuous = intent.getBooleanExtra("isContinuousRead", false);
         return new LocalBinder();
     }
@@ -127,8 +122,6 @@ public class TTSService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             Log.d(Tag, "服务开始");
-            speed = intent.getFloatExtra("tts_speed", 1.0F);
-            pitch = intent.getFloatExtra("tts_pitch", 1.0F);
             paragraphList = intent.getStringArrayListExtra("paragraphList");
             paragraphNum = intent.getIntExtra("paragraphNum", 0);
 //            Log.d(Tag, "paragraphList:" + paragraphList);
@@ -142,8 +135,7 @@ public class TTSService extends Service {
             if (status == TextToSpeech.SUCCESS) {
                 int result = localTTS.setLanguage(Locale.CHINESE);
                 Log.d(Tag, "result:" + result);
-                if (result == TextToSpeech.LANG_MISSING_DATA ||
-                        result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e("TTS", "不支持中文语音合成");
                     if (result == TextToSpeech.LANG_MISSING_DATA) {
                         Log.e("TTS", "缺少中文语音数据，正在下载...");
@@ -180,14 +172,17 @@ public class TTSService extends Service {
 
     private class ttsUtteranceListener extends UtteranceProgressListener {
         @Override
-        public void onStart(String utteranceId) {
+        public void onStart(String utteranceId) {}
+        @Override
+        public void onRangeStart(String utteranceId, int start, int end, int frame) {
             //utteranceId是speak方法中最后一个参数：唯一标识码
+            Log.d(Tag, "Range utteranceId:" + utteranceId + " start:" + start + " end:" + end + " frame:" + frame);
         }
         @Override
         public void onDone(String utteranceId) {
             // 播放完成
             if (paragraphNum < paragraphList.size()) {
-                paragraphNum++;
+                paragraphNum ++;
                 ttsStart(paragraphNum);
             } else {
                 // 播完发送停止信号
@@ -221,18 +216,20 @@ public class TTSService extends Service {
                 mContext.getApplicationContext(), new TTSOnInitListener());
         if (num >= 0 && num < paragraphList.size()) {
             ttsState = 1;
-            Log.d(Tag, "num:" + num + " | paragraphNum:" + paragraphNum);
-//            String text = paragraphList.get(num);
-            StringBuilder text = new StringBuilder();
-            for (int i = num; i < paragraphList.size(); i++) {
-                String paragraph = paragraphList.get(i);
-                text.append("\r\n").append(paragraph);
-                if (text.length() > 2000) break;
-                num = i;
-                paragraphNum = i;
-                Log.d(Tag, "paragraphNum:" + paragraphNum);
-            }
-            localTTS.speak(text, 0, null, String.valueOf(num));
+            Log.d(Tag, "num:" + num);
+            String text = paragraphList.get(num);
+//            StringBuilder text = new StringBuilder();
+//            for (int i = num; i < paragraphList.size(); i++) {
+//                String paragraph = paragraphList.get(i);
+//                text.append("\r\n").append(paragraph);
+//                if (text.length() > 2000) {
+//                    paragraphNum = i;
+//                    break;
+//                }
+//                paragraphNum = i;
+//                Log.d(Tag, "paragraphNum:" + paragraphNum);
+//            }
+            localTTS.speak(text, 0, null, String.valueOf(paragraphNum));
             sendTTSStateToMain(Constants.MSG_PROGRESS);
         } else if (num == paragraphList.size() && isContinuous) {
             Log.d(Tag, "num = " + num);

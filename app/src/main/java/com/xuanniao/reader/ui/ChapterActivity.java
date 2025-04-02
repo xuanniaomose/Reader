@@ -124,8 +124,6 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                 Log.d(Tag, "按下了朗读");
                 ll_setting.setVisibility(View.GONE);
                 ll_tts.setVisibility(View.VISIBLE);
-                readControl.connect(ChapterActivity.this);
-                readControl.setParagraphList(paragraphList);
                 handler_ttsOK = new Handler(Looper.myLooper()) {
                     @Override
                     public void handleMessage(Message msg) {
@@ -133,6 +131,8 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                                 Constants.ACTION_PARAGRAPH, nowReading);
                     }
                 };
+                readControl.connect(ChapterActivity.this);
+                readControl.setParagraphList(paragraphList);
             }
         });
 
