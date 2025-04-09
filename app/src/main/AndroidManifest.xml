@@ -68,7 +68,7 @@
         </activity>
 
         <service
-            android:name=".tools.BookGet"
+            android:name=".getter.BookGetter"
             android:exported="false"
             android:permission="android.permission.SERVICE"
         >

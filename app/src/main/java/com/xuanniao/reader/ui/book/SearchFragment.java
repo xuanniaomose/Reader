@@ -179,7 +179,7 @@ public class SearchFragment extends Fragment {
                         int max = Math.min(resultPagesAdapter.getCount(), currentPage + cache);
 
                         if (min <= platformID && platformID <= max) {
-                            ResultListFragment rf = resultPagesAdapter.getFragment(platformID);
+                            BookListFragment rf = resultPagesAdapter.getFragment(platformID);
                                 rf.setResultList(list);
                         }
                     }

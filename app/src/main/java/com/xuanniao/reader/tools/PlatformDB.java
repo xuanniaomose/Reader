@@ -69,6 +69,7 @@ public class PlatformDB extends SQLiteOpenHelper {
                 "charsetName VARCHAR," +
 
                 "searchPath VARCHAR," +
+                "infoPath VARCHAR," +
                 "catalogPath VARCHAR," +
                 "chapterPath VARCHAR," +
 
@@ -317,6 +318,7 @@ public class PlatformDB extends SQLiteOpenHelper {
         values.put("charsetName", platformItem.getCharsetName());
 
         values.put("searchPath", platformItem.getSearchPath());
+        values.put("infoPath", platformItem.getInfoPath());
         values.put("catalogPath", platformItem.getCatalogPath());
         values.put("chapterPath", platformItem.getChapterPath());
 
@@ -348,20 +350,21 @@ public class PlatformDB extends SQLiteOpenHelper {
             platform.setCharsetName(cursor.getString(4));
 
             platform.setSearchPath(cursor.getString(5));
-            platform.setCatalogPath(cursor.getString(6));
-            platform.setChapterPath(cursor.getString(7));
+            platform.setInfoPath(cursor.getString(6));
+            platform.setCatalogPath(cursor.getString(7));
+            platform.setChapterPath(cursor.getString(8));
 
-            platform.setResultPage(cursor.getString(8).split(","));
-            platform.setResultError(cursor.getString(9));
-            platform.setResultPageFormat(cursor.getString(10));
+            platform.setResultPage(cursor.getString(9).split(","));
+            platform.setResultError(cursor.getString(10));
+            platform.setResultPageFormat(cursor.getString(11));
 
-            platform.setCatalogPage(cursor.getString(11).split(","));
-            platform.setCatalogError(cursor.getString(12));
-            platform.setCatalogPageFormat(cursor.getString(13));
+            platform.setCatalogPage(cursor.getString(12).split(","));
+            platform.setCatalogError(cursor.getString(13));
+            platform.setCatalogPageFormat(cursor.getString(14));
 
-            platform.setChapterPage(cursor.getString(14).split(","));
-            platform.setChapterError(cursor.getString(15));
-            platform.setChapterPageFormat(cursor.getString(16));
+            platform.setChapterPage(cursor.getString(15).split(","));
+            platform.setChapterError(cursor.getString(16));
+            platform.setChapterPageFormat(cursor.getString(17));
             list.add(platform);
         }
         return list;

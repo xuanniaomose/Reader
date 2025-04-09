@@ -10,6 +10,7 @@ public class BookItem {
     String synopsis;
     long renewTime;
     int wordCount;
+    String coverUrl;
     List<Integer> chapterReadList;
     List<Integer> chapterSavedList;
     int chapterTotal;
@@ -17,6 +18,7 @@ public class BookItem {
 
     String publisher;
     String classify;
+    String status;
     String platformName;
     String bookCode;
     String mimeType;
@@ -47,6 +49,10 @@ public class BookItem {
     }
     public void setWordCount(int wordCount) {
         this.wordCount = wordCount;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public void setChapterReadList(List<Integer> chapterReadList) {
@@ -85,6 +91,10 @@ public class BookItem {
 
     public void setClassify(String classify) {
         this.classify = classify;
+    }
+
+    public void setStatus(String status) {
+        this.status= status;
     }
 
     public void setBookCode(String bookCode) {
@@ -140,6 +150,10 @@ public class BookItem {
         return wordCount;
     }
 
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
     public List<Integer> getChapterReadList() {
         return chapterReadList;
     }
@@ -162,6 +176,10 @@ public class BookItem {
 
     public String getClassify() {
         return classify;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public String getPlatformName() {

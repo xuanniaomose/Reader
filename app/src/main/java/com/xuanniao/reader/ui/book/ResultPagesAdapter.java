@@ -1,19 +1,13 @@
 package com.xuanniao.reader.ui.book;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TableLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import com.google.android.material.tabs.TabLayout;
-import com.xuanniao.reader.R;
-import com.xuanniao.reader.ui.BookActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +16,9 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
     private static final String Tag = "ResultPager适配器";
     private Context context;
     private int mPageNum;
-    private ResultListFragment mCurrentFragment;
+    private BookListFragment mCurrentFragment;
     private List<PlatformItem> platformList;
-    private final List<ResultListFragment> mFragmentList = new ArrayList<>();
+    private final List<BookListFragment> mFragmentList = new ArrayList<>();
     private final List<String> mFragmentTitleList = new ArrayList<>();
 
 
@@ -39,12 +33,12 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
         if (platformList == null || platformList.isEmpty()) {
             PlatformItem platformItem = new PlatformItem();
             platformItem.setPlatformName("无平台");
-            mFragmentList.add(ResultListFragment.newInstance(platformItem));
+            mFragmentList.add(BookListFragment.newInstance(platformItem));
             mFragmentTitleList.add("无平台");
             return;
         }
         for (PlatformItem platformItem : platformList) {
-            mFragmentList.add(ResultListFragment.newInstance(platformItem));
+            mFragmentList.add(BookListFragment.newInstance(platformItem));
             mFragmentTitleList.add(platformItem.getPlatformName());
         }
         Log.d(Tag, "platNum:" + mFragmentList.size());
@@ -55,7 +49,7 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
             this.mFragmentList.clear();
             this.mFragmentTitleList.clear();
             for (PlatformItem platformItem : platformList) {
-                mFragmentList.add(ResultListFragment.newInstance(platformItem));
+                mFragmentList.add(BookListFragment.newInstance(platformItem));
                 mFragmentTitleList.add(platformItem.getPlatformName());
             }
             notifyDataSetChanged();
@@ -65,7 +59,7 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
     /** 初始化所有页面 */
     @Override
     public void setPrimaryItem(ViewGroup container, int position, Object object) {
-        mCurrentFragment = (ResultListFragment) object;
+        mCurrentFragment = (BookListFragment) object;
         mPageNum = position;
         super.setPrimaryItem(container, position, object);
     }
@@ -90,7 +84,7 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
         return super.instantiateItem(container, position);
     }
 
-    public ResultListFragment getCurrentFragment() {
+    public BookListFragment getCurrentFragment() {
         return mCurrentFragment;
     }
 
@@ -98,10 +92,10 @@ public class ResultPagesAdapter extends FragmentPagerAdapter {
         return mPageNum;
     }
 
-    public ResultListFragment getFragment(int pageNum) {
-        ResultListFragment rf = null;
+    public BookListFragment getFragment(int pageNum) {
+        BookListFragment rf = null;
         if (mFragmentList != null && mFragmentList.size() > 0) {
-            rf = (ResultListFragment) mFragmentList.get(pageNum);
+            rf = (BookListFragment) mFragmentList.get(pageNum);
         }
         return rf;
     }

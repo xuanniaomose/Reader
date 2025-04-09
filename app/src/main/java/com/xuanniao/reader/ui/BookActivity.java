@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -22,6 +21,7 @@ import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.BookGetter;
 import com.xuanniao.reader.tools.*;
 import com.xuanniao.reader.ui.book.MainPagesAdapter;
 import com.xuanniao.reader.ui.book.PlatformItem;
@@ -143,10 +143,10 @@ public class BookActivity extends FragmentActivity {
         return platformList;
     }
 
-    public void searchForResultList(PlatformItem item, String s) {
-        Intent intent = new Intent(BookActivity.this, BookGet.class);
-        intent.putExtra("platformItem", item);
-        intent.putExtra("BookName", s);
+    public void searchForResultList(int platformId, String bookName) {
+        Intent intent = new Intent(BookActivity.this, BookGetter.class);
+        intent.putExtra("platformID", platformId);
+        intent.putExtra("bookName", bookName);
         startService(intent);
     }
 
