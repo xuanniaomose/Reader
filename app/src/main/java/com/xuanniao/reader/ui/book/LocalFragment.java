@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
+import android.os.*;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,10 +16,8 @@ import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.tools.BookDB;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.FileTools;
-import com.xuanniao.reader.ui.BookActivity;
-import com.xuanniao.reader.ui.BookAdapter;
-import com.xuanniao.reader.ui.BookItem;
+import com.xuanniao.reader.getter.FileTools;
+import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,6 +31,7 @@ public class LocalFragment extends Fragment {
     private boolean isFirstLoad;
     private List<BookItem> bookList;
     private BookAdapter bookAdapter;
+    public static Handler handler_info;
 
     public static SearchFragment newInstance(int index) {
         SearchFragment fragment = new SearchFragment();
@@ -64,6 +61,7 @@ public class LocalFragment extends Fragment {
         lv_book = fragmentView.findViewById(R.id.lv_book);
         bookList = new ArrayList<>();
         bdb = BookDB.getInstance(mContext, Constants.DB_BOOK);
+        handler_info = setInfoHandler();
         return fragmentView;
     }
 
@@ -111,17 +109,30 @@ public class LocalFragment extends Fragment {
     // 带回文件路径
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Constants.FILE_SELECT_CODE &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // 检查是否有权限
+            boolean isRefuse = !Environment.isExternalStorageManager();
+            Log.d(Tag, "授权：" + isRefuse);
+        }
         if (resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
             Log.d(Tag, "uri:" + uri);
             // 获取持久化权限
             mContext.getContentResolver().takePersistableUriPermission(uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            );
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            // TODO: 这里换成BookGetter
             BookItem bookItem = FileTools.loadLocalBook(mContext, uri);
-            if (bookItem != null && bookItem.getBookName() != null) {
+            if (bookItem.getBookName() != null || !bookItem.getBookName().isEmpty()) {
 //                bdb.writeItem(Constants.TAB_BOOK, bookItem);
                 Log.d(Tag, "书目名称:" + bookItem.getBookName());
+//                Intent intent = new Intent(mContext, InfoGetter.class);
+//                intent.putExtra("isLocal", false);
+//                intent.putExtra("isCreate", false);
+//                intent.putExtra("platformID", platformId);
+//                intent.putExtra("bookName", bookName);
+//                startService(intent);
                 bookList.add(bookList.size() - 1, bookItem);
                 bookAdapter = new BookAdapter(mContext, bookList);
                 lv_book.setAdapter(bookAdapter);
@@ -129,12 +140,23 @@ public class LocalFragment extends Fragment {
                 Toast.makeText(getActivity(), "读取本地书目失败", Toast.LENGTH_SHORT).show();
             }
         }
-        if (requestCode == Constants.FILE_SELECT_CODE &&
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // 检查是否有权限
-            boolean isRefuse = !Environment.isExternalStorageManager();
-            Log.d(Tag, "授权：" + isRefuse);
-        }
+    }
+
+    private Handler setInfoHandler() {
+        return new Handler(Looper.myLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 1) {
+                    BookItem bookItem = (BookItem) msg.obj;
+                    bookAdapter = new BookAdapter(mContext, bookList);
+                    lv_book.setAdapter(bookAdapter);
+                } else if (msg.what == 2) {
+                    Toast.makeText(mContext, "网络错误", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(mContext, "程序BUG", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
     }
 
     @Override

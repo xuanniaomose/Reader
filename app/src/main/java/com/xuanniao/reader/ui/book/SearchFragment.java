@@ -17,11 +17,15 @@ import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.BookGetter;
+import com.xuanniao.reader.getter.CatalogGetter;
+import com.xuanniao.reader.getter.InfoGetter;
 import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SearchFragment extends Fragment {
     private static final String Tag = "搜索页面";
@@ -34,14 +38,10 @@ public class SearchFragment extends Fragment {
     private SharedPreferences spConfig;
     List<List<BookItem>> resultList;
     private ImageButton btn_settings;
-    public static Handler handler_setResult, handler_setPlatform;
+    public static Handler handler_setResult, handler_setPlatform, handler_info;
     private String[] searchModArray;
     int mNum, searchMod = 0;
 
-    /**
-     * Create a new instance of CountingFragment, providing "num"
-     * as an argument.
-     */
     static SearchFragment newInstance(int num) {
         SearchFragment f = new SearchFragment();
 
@@ -53,9 +53,6 @@ public class SearchFragment extends Fragment {
         return f;
     }
 
-    /**
-     * When creating, retrieve this instance's number from its arguments.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,10 +65,6 @@ public class SearchFragment extends Fragment {
         this.context = context;
     }
 
-    /**
-     * The Fragment's UI is just a simple text view showing its
-     * instance number.
-     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -82,6 +75,7 @@ public class SearchFragment extends Fragment {
         pagerSearch = fragmentView.findViewById(R.id.pager_search);
         btn_settings = fragmentView.findViewById(R.id.btn_settings);
         handler_setResult = setResultHandler();
+        handler_info = setInfoHandler();
         handler_setPlatform= setPlatformHandler();
         return fragmentView;
     }
@@ -92,10 +86,10 @@ public class SearchFragment extends Fragment {
         BookActivity bookActivity = (BookActivity) context;
         spConfig = PreferenceManager.getDefaultSharedPreferences(bookActivity);
         List<PlatformItem> platformList = bookActivity.getPlatformList();
-        resultList = new ArrayList<>();
         resultPagesAdapter = new ResultPagesAdapter(context, getChildFragmentManager(), platformList);
         pagerSearch.setAdapter(resultPagesAdapter);
         tabs_search.setupWithViewPager(pagerSearch);
+        if (platformList != null) resultList = setDefultResultList(platformList.size());
         searchModArray = getResources().getStringArray(R.array.searchMod);
         ArrayAdapter adapter = new ArrayAdapter(context, R.layout.spinner_item, searchModArray);
         sp_isExact.setAdapter(adapter);
@@ -105,22 +99,17 @@ public class SearchFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String s = parent.getItemAtPosition(position).toString();
                 if (s.equals("精确")) {
-                    Toast.makeText(context, s + "搜索：使用书目代码进行搜索", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, s + "搜索：书目代码", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(context, s + "搜索：目前无法使用", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, s + "搜索：书名", Toast.LENGTH_SHORT).show();
                 }
                 searchMod = position;
+                Log.d(Tag, "searchMod:" + position);
             }
-            //只有当patent中的资源没有时，调用此方法
+            // 只有当patent中的资源没有时，调用此方法
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
-//        EditText editText = svSearch.findViewById(androidx.appcompat.R.id.search_src_text);
-//        editText.setTextColor(Color.WHITE);
-////        editText.setHintTextColor(Color.GRAY);
-//        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         svSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,22 +119,25 @@ public class SearchFragment extends Fragment {
         svSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(Tag, "搜索:" + query);
-//                resultPagesAdapter.search(query);
-//                ResultListFragment f = resultPagesAdapter.getCurrentFragment();
+                int platformID = resultPagesAdapter.getPageNum();
+                Intent intent;
                 if (searchMod == 0) {
-                    Toast.makeText(context, "搜索功能还没做完，请切换为精确搜索模式进行搜索", Toast.LENGTH_SHORT).show();
-//                    Intent intent = new Intent(context, BookGet.class);
-//                    intent.putExtra("isLocal", 0);
-//                    intent.putExtra("bookName", query);
-//                    intent.putExtra("chapterCode", -1);
-//                    context.startService(intent);
+                    intent = new Intent(context, BookGetter.class);
+                    intent.putExtra("bookName", query);
                 } else {
-                    Intent intent = new Intent(context, CatalogActivity.class);
-                    intent.putExtra("isLocal", 0);
+                    Log.d(Tag, "platformID:" + platformID);
+                    if (platformList != null && Objects.equals(platformList.get(platformID)
+                            .getAccurateSearch(), "catalog")) {
+                        intent = new Intent(context, CatalogGetter.class);
+                    } else {
+                        intent = new Intent(context, InfoGetter.class);
+                        intent.putExtra("num", 0);
+                    }
                     intent.putExtra("bookCode", query);
-                    intent.putExtra("platformID", resultPagesAdapter.getPageNum());
-                    context.startActivity(intent);
                 }
+                intent.putExtra("isLocal", false);
+                intent.putExtra("platformID", platformID);
+                context.startService(intent);
                 svSearch.clearFocus();
                 return true;
             }
@@ -171,17 +163,63 @@ public class SearchFragment extends Fragment {
                     Log.d(Tag, "platformID:" + platformID);
                     List<BookItem> list = (List<BookItem>) msg.obj;
                     if (list != null && !list.isEmpty()) {
-                        resultList.add(list);
-
                         int cache = 1;
                         int currentPage = resultPagesAdapter.getPageNum();
                         int min = Math.max(currentPage - cache, 0);
                         int max = Math.min(resultPagesAdapter.getCount(), currentPage + cache);
 
                         if (min <= platformID && platformID <= max) {
-                            ResultListFragment rf = resultPagesAdapter.getFragment(platformID);
-                                rf.setResultList(list);
+                            resultList.add(platformID - 1, list);
+                            BookListFragment rf = resultPagesAdapter.getFragment(platformID);
+                            rf.setResultList(list);
                         }
+
+                        if (msg.arg2 == 0) {
+                            for (int i = 0; i < list.size(); i++) {
+                                BookItem bookItem = list.get(i);
+                                Intent intent = new Intent(context, InfoGetter.class);
+                                intent.putExtra("isCreate", false);
+                                intent.putExtra("platformID", platformID);
+                                intent.putExtra("num", i);
+                                intent.putExtra("bookName", bookItem.getBookName());
+                                intent.putExtra("bookCode", bookItem.getBookCode());
+                                context.startActivity(intent);
+                            }
+                        }
+                    }
+                } else if (msg.what == 2) {
+                    Toast.makeText(context, "网络错误", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "程序BUG", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+    }
+
+    private Handler setInfoHandler() {
+        return new Handler(Looper.myLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 1) {
+                    int platformID = msg.arg1;
+                    int num = msg.arg2;
+
+                    int cache = 1;
+                    int currentPage = resultPagesAdapter.getPageNum();
+                    int min = Math.max(currentPage - cache, 0);
+                    int max = Math.min(resultPagesAdapter.getCount(), currentPage + cache);
+
+                    if (min <= platformID && platformID <= max) {
+                        BookItem bookItem = (BookItem) msg.obj;
+                        Log.d(Tag, "bookName:" + bookItem.getBookName());
+//                        List<BookItem> list = resultList.get(platformID - 1);
+//                        list.set(num, bookItem);
+                        List<BookItem> list = new ArrayList<>();
+                        list.add(bookItem);
+//                        resultList.remove(platformID - 1);
+//                        resultList.add(platformID - 1, list);
+                        BookListFragment rf = resultPagesAdapter.getFragment(platformID);
+                        rf.setResultList(list);
                     }
                 } else if (msg.what == 2) {
                     Toast.makeText(context, "网络错误", Toast.LENGTH_SHORT).show();
@@ -231,6 +269,20 @@ public class SearchFragment extends Fragment {
                 }
             }
         };
+    }
+
+    public List<List<BookItem>> setDefultResultList(int n) {
+        BookItem bookItem = new BookItem();
+        bookItem.setBookName("无搜索结果");
+        List<BookItem> bookItemList = new ArrayList<>();
+        bookItemList.add(bookItem);
+        List<List<BookItem>> resultList = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            resultList.add(bookItemList);
+//            BookListFragment rf = resultPagesAdapter.getFragment(i + 1);
+//            rf.setResultList(bookItemList);
+        }
+        return resultList;
     }
 
     public List<BookItem> getResultList(int i) {

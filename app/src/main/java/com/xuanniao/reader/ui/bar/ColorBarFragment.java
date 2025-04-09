@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.ColorSelector;
+import com.xuanniao.reader.ui.widget.ColorSelector;
 import com.xuanniao.reader.tools.Tools;
 import com.xuanniao.reader.ui.ChapterActivity;
 

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
@@ -22,6 +21,7 @@ import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.BookGetter;
 import com.xuanniao.reader.tools.*;
 import com.xuanniao.reader.ui.book.MainPagesAdapter;
 import com.xuanniao.reader.ui.book.PlatformItem;
@@ -62,14 +62,13 @@ public class BookActivity extends FragmentActivity {
     }
 
     private void init() {
-        // 如果sp文件里有有效的上次的阅读记录，那么直接打开阅读界面
+        // TODO: 如果sp文件里有有效的上次的阅读记录，那么直接打开阅读界面
         sp = getSharedPreferences(Constants.SP_BOOK, Context.MODE_PRIVATE);
         spConfig = PreferenceManager.getDefaultSharedPreferences(this);
         bdb = BookDB.getInstance(this, Constants.DB_BOOK);
         pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
         localBookList = bdb.queryAll(Constants.TAB_BOOK);
         loadPlatformList();
-
         mainPagesAdapter = new MainPagesAdapter(getSupportFragmentManager());
         viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(mainPagesAdapter);
@@ -78,16 +77,10 @@ public class BookActivity extends FragmentActivity {
             public void onPageScrolled(int i, float v, int i1) {
                 spConfig.edit().putInt("mainPageNum", i).apply();
             }
-
             @Override
-            public void onPageSelected(int i) {
-
-            }
-
+            public void onPageSelected(int i) {}
             @Override
-            public void onPageScrollStateChanged(int i) {
-
-            }
+            public void onPageScrollStateChanged(int i) {}
         });
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
@@ -117,7 +110,6 @@ public class BookActivity extends FragmentActivity {
     }
 
     private void guide() {
-        List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
         if (platformList == null || platformList.isEmpty() || platformList.get(0).getPlatformName() == null) {
             showNeedPlatformWindow();
         } else {
@@ -143,10 +135,10 @@ public class BookActivity extends FragmentActivity {
         return platformList;
     }
 
-    public void searchForResultList(PlatformItem item, String s) {
-        Intent intent = new Intent(BookActivity.this, BookGet.class);
-        intent.putExtra("platformItem", item);
-        intent.putExtra("BookName", s);
+    public void searchForResultList(int platformId, String bookName) {
+        Intent intent = new Intent(BookActivity.this, BookGetter.class);
+        intent.putExtra("platformID", platformId);
+        intent.putExtra("bookName", bookName);
         startService(intent);
     }
 

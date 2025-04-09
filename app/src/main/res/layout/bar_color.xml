@@ -49,7 +49,7 @@
                     android:layout_height="match_parent"
                     android:orientation="horizontal"
                 >
-                    <com.xuanniao.reader.tools.ColorSelector
+                    <com.xuanniao.reader.ui.widget.ColorSelector
                         android:id="@+id/colorSelector"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"

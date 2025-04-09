@@ -15,18 +15,27 @@ public class PlatformItem implements Parcelable {
     String charsetName;
 
     String searchPath;
+    String infoPath;
     String catalogPath;
     String chapterPath;
 
     String[] resultPage;
     String resultError;
     String resultPageFormat;
+
+    String[] infoPage;
+    String infoError;
+    String infoPageFormat;
+
     String[] catalogPage;
     String catalogError;
     String catalogPageFormat;
+
     String[] chapterPage;
     String chapterError;
     String chapterPageFormat;
+
+    String accurateSearch;
 
 
     public int getID() {
@@ -59,6 +68,14 @@ public class PlatformItem implements Parcelable {
 
     public void setSearchPath(String searchPath) {
         this.searchPath = searchPath;
+    }
+
+    public String getInfoPath() {
+        return infoPath;
+    }
+
+    public void setInfoPath(String infoPath) {
+        this.infoPath = infoPath;
     }
 
     public String getCatalogPath() {
@@ -119,6 +136,29 @@ public class PlatformItem implements Parcelable {
         this.resultPageFormat = resultPageFormat;
     }
 
+    public String[] getInfoPage() {
+        return infoPage;
+    }
+
+    public void setInfoPage(String[] infoPage) {
+        this.infoPage = infoPage;
+    }
+
+    public String getInfoError() {
+        return infoError;
+    }
+
+    public void setInfoError(String infoError) {
+        this.infoError = infoError;
+    }
+
+    public String getInfoPageFormat() {
+        return infoPageFormat;
+    }
+
+    public void setInfoPageFormat(String infoPageFormat) {
+        this.infoPageFormat = infoPageFormat;
+    }
 
     public String[] getCatalogPage() {
         return catalogPage;
@@ -169,6 +209,14 @@ public class PlatformItem implements Parcelable {
         this.chapterPageFormat = chapterPageFormat;
     }
 
+    public String getAccurateSearch() {
+        return accurateSearch;
+    }
+
+    public void setAccurateSearch(String accurateSearch) {
+        this.accurateSearch = accurateSearch;
+    }
+
     @Override
     public int describeContents() {
         return Parcelable.CONTENTS_FILE_DESCRIPTOR;
@@ -190,6 +238,12 @@ public class PlatformItem implements Parcelable {
         parcel.writeString(resultError);
         parcel.writeString(resultPageFormat);
 
+        if (infoPage != null && infoPage.length > 0) {
+            parcel.writeString(String.join(",", infoPage));
+        }
+        parcel.writeString(infoError);
+        parcel.writeString(infoPageFormat);
+
         if (catalogPage != null && catalogPage.length > 0) {
             parcel.writeString(String.join(",", catalogPage));
         }
@@ -201,6 +255,7 @@ public class PlatformItem implements Parcelable {
         }
         parcel.writeString(chapterError);
         parcel.writeString(chapterPageFormat);
+        parcel.writeString(accurateSearch);
     }
 
     public static final Parcelable.Creator<PlatformItem> CREATOR = new Creator<PlatformItem>() {
@@ -218,6 +273,10 @@ public class PlatformItem implements Parcelable {
             platformItem.resultError = source.readString();
             platformItem.resultPageFormat = source.readString();
 
+            platformItem.infoPage = source.readString().split(",");
+            platformItem.infoError = source.readString();
+            platformItem.infoPageFormat = source.readString();
+
             platformItem.catalogPage = source.readString().split(",");
             platformItem.catalogError = source.readString();
             platformItem.catalogPageFormat = source.readString();
@@ -225,6 +284,8 @@ public class PlatformItem implements Parcelable {
             platformItem.chapterPage = source.readString().split(",");
             platformItem.chapterError = source.readString();
             platformItem.chapterPageFormat = source.readString();
+
+            platformItem.accurateSearch = source.readString();
             return platformItem;
         }
 

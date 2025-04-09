@@ -14,12 +14,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.FileTools;
+import com.xuanniao.reader.getter.FileTools;
 import com.xuanniao.reader.tools.PlatformDB;
 import org.jetbrains.annotations.NotNull;
 

@@ -2,9 +2,7 @@ package com.xuanniao.reader.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.*;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -12,13 +10,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.documentfile.provider.DocumentFile;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.CatalogGetter;
+import com.xuanniao.reader.getter.FileTools;
 import com.xuanniao.reader.tools.*;
 
 import java.util.ArrayList;
@@ -33,7 +31,8 @@ public class CatalogActivity extends AppCompatActivity {
     public static Handler handler_catalog;
     CatalogItem catalogItem;
     String bookName, bookCode;
-    int isLocal, platformID;
+    int platformID;
+    boolean isLocal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +56,7 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void init() {
         Intent intentGet = getIntent();
-        isLocal = intentGet.getIntExtra("isLocal", 0);
+        isLocal = intentGet.getBooleanExtra("isLocal", false);
         platformID = intentGet.getIntExtra("platformID", -1);
         bookName = intentGet.getStringExtra("bookName");
         bookCode = intentGet.getStringExtra("bookCode");
@@ -76,7 +75,7 @@ public class CatalogActivity extends AppCompatActivity {
         }
         if (catalogItem == null || catalogItem.getChapterCodeList() == null || catalogItem.getChapterCodeList().isEmpty()) {
             Log.d(Tag, "填充目录列表");
-            Intent intent = new Intent(CatalogActivity.this, BookGet.class);
+            Intent intent = new Intent(CatalogActivity.this, CatalogGetter.class);
             intent.putExtra("isLocal", isLocal);
             intent.putExtra("platformID", platformID);
             intent.putExtra("bookName", bookName);

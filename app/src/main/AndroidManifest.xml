@@ -68,7 +68,37 @@
         </activity>
 
         <service
-            android:name=".tools.BookGet"
+            android:name=".getter.BookGetter"
+            android:exported="false"
+            android:permission="android.permission.SERVICE"
+        >
+            <intent-filter >
+                <action android:name="bookget"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".getter.InfoGetter"
+            android:exported="false"
+            android:permission="android.permission.SERVICE"
+        >
+            <intent-filter >
+                <action android:name="infoget"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".getter.CatalogGetter"
+            android:exported="false"
+            android:permission="android.permission.SERVICE"
+        >
+            <intent-filter >
+                <action android:name="article"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".getter.ChapterGetter"
             android:exported="false"
             android:permission="android.permission.SERVICE"
         >

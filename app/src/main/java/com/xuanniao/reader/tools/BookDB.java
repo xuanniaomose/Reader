@@ -69,6 +69,7 @@ public class BookDB extends SQLiteOpenHelper {
                 "synopsis VARCHAR," +
                 "renewTime LONG," +
                 "wordCount INTEGER," +
+                "coverUrl VARCHAR," +
                 "chapterRead VARCHAR," +
                 "chapterSaved VARCHAR," +
                 "chapterTotal INTEGER," +
@@ -76,6 +77,7 @@ public class BookDB extends SQLiteOpenHelper {
 
                 "publisher VARCHAR," +
                 "classify VARCHAR," +
+                "status VARCHAR," +
                 "platformName VARCHAR NOT NULL," +
                 "bookCode VARCHAR," +
                 "mimeType VARCHAR," +
@@ -301,6 +303,7 @@ public class BookDB extends SQLiteOpenHelper {
         values.put("synopsis", bookItem.getSynopsis());
         values.put("renewTime", bookItem.getRenewTime());
         values.put("wordCount", bookItem.getWordCount());
+        values.put("coverUrl", bookItem.getCoverUrl());
         String readListStr = listToString(bookItem.getChapterReadList());
         if (readListStr != null && !readListStr.isEmpty()) {
             values.put("chapterRead", readListStr);
@@ -315,6 +318,7 @@ public class BookDB extends SQLiteOpenHelper {
 
         values.put("publisher", bookItem.getPublisher());
         values.put("classify", bookItem.getClassify());
+        values.put("status", bookItem.getClassify());
         values.put("platformName", bookItem.getPlatformName());
         values.put("bookCode", bookItem.getBookCode());
         values.put("mimeType", bookItem.getMimeType());
@@ -347,27 +351,29 @@ public class BookDB extends SQLiteOpenHelper {
             book.setSynopsis(cursor.getString(4));
             book.setRenewTime(cursor.getLong(5));
             book.setWordCount(cursor.getInt(6));
+            book.setCoverUrl(cursor.getString(7));
 
-            List<Integer> readList = stringToList(cursor.getString(7));
+            List<Integer> readList = stringToList(cursor.getString(8));
             if (readList != null && !readList.isEmpty()) {
                 book.setChapterReadList(readList);
             }
-            List<Integer> savedList = stringToList(cursor.getString(8));
+            List<Integer> savedList = stringToList(cursor.getString(9));
             if (savedList != null && !savedList.isEmpty()) {
                 book.setChapterSavedList(savedList);
             }
-            book.setChapterTotal(cursor.getInt(9));
-            book.setBookMark(cursor.getInt(10));
+            book.setChapterTotal(cursor.getInt(10));
+            book.setBookMark(cursor.getInt(11));
 
-            book.setPublisher(cursor.getString(11));
-            book.setClassify(cursor.getString(12));
-            book.setPlatformName(cursor.getString(13));
-            book.setBookCode(cursor.getString(14));
-            book.setMimeType(cursor.getString(15));
-            book.setVolumeName(cursor.getString(16));
-            book.setVolumeIndex(cursor.getInt(17));
-            book.setPublishDate(cursor.getInt(18));
-            book.setDownloadTime(cursor.getInt(19));
+            book.setPublisher(cursor.getString(12));
+            book.setClassify(cursor.getString(13));
+            book.setStatus(cursor.getString(14));
+            book.setPlatformName(cursor.getString(15));
+            book.setBookCode(cursor.getString(16));
+            book.setMimeType(cursor.getString(17));
+            book.setVolumeName(cursor.getString(18));
+            book.setVolumeIndex(cursor.getInt(19));
+            book.setPublishDate(cursor.getInt(20));
+            book.setDownloadTime(cursor.getInt(21));
             list.add(book);
         }
         return list;

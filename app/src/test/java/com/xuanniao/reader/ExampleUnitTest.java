@@ -12,8 +12,8 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
-        String s = "返回：(1)\\/最新网址:";
-        s = s.replaceAll("返回：\\(.*\\)\\\\/", "替换成功");
+        String s = "/10_10966/270298";
+        s = s.replaceAll("/[0-9]*_[0-9]*/", "替换成功");
         System.out.print(s);
     }
 }

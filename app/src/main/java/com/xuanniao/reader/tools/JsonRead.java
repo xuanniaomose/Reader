@@ -34,6 +34,8 @@ public class JsonRead {
 
                 String searchPath = (String) item.get("searchPath");
                 platformItem.setSearchPath(searchPath);
+                String infoPath = (String) item.get("infoPath");
+                platformItem.setInfoPath(infoPath);
                 String catalogPath = (String) item.get("catalogPath");
                 platformItem.setCatalogPath(catalogPath);
                 String chapterPath = (String) item.get("chapterPath");
@@ -47,13 +49,28 @@ public class JsonRead {
                     String key = (String) resultListI.next();
                     resultList.add(key);
                 }
-//                Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
                 Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
                 platformItem.setResultPage(resultList.toArray(new String[]{}));
                 String resultError = (String) item.get("resultError");
                 platformItem.setResultError(resultError);
                 Log.d(Tag, "resultPage:" + resultPage);
                 platformItem.setResultPageFormat(resultPage.toString());
+
+                // 详情页面
+                JSONObject infoPage = (JSONObject) item.get("infoPage");
+                Iterator infoListI = infoPage.keys();
+                List<String> infoList = new ArrayList<>();
+                while(infoListI.hasNext()){
+                    String key = (String) infoListI.next();
+                    infoList.add(key);
+                }
+                Log.d(Tag, "infoList:" + infoList);
+                platformItem.setInfoPage(infoList.toArray(new String[]{}));
+                String infoError = (String) item.get("infoError");
+                Log.d(Tag, "infoError:" + infoError);
+                platformItem.setInfoError(infoError);
+                Log.d(Tag, "infoPage:" + infoPage);
+                platformItem.setInfoPageFormat(infoPage.toString());
 
                 // 目录页面
                 JSONObject catalogPage = (JSONObject) item.get("catalogPage");
@@ -85,6 +102,8 @@ public class JsonRead {
                 Log.d(Tag, "chapterPage:" + chapterPage);
                 platformItem.setChapterPageFormat(chapterPage.toString());
 
+                String accurateSearch = (String) item.get("accurateSearch");
+                platformItem.setAccurateSearch(accurateSearch);
                 platformList.add(platformItem);
             }
         } catch (JSONException e) {

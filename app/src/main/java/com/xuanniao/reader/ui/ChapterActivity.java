@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.ChapterGetter;
 import com.xuanniao.reader.tools.*;
 import com.xuanniao.reader.ui.bar.ColorBarFragment;
 import com.xuanniao.reader.ui.bar.TTSBarFragment;
@@ -41,8 +42,8 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     String bookName, bookCode, chapterTitle, chapterCode;
     static int barState = 0; // 0没有弹出栏，1目录栏，2朗读栏，3颜色栏
     static int ttsState = 0; //-1出错，0没有TTS，1正在读，2暂停
-    static int nowReading = 0, chapterNum, bookMark;
-    int isLocal, platformID;
+    static int nowReading = 0, platformID, chapterNum, bookMark;
+    boolean isLocal;
 
 
     @Override
@@ -63,7 +64,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     private void init() {
         readControl = new ReadControl(this);
         Intent intent = getIntent();
-        isLocal = intent.getIntExtra("isLocal", 0);
+        isLocal = intent.getBooleanExtra("isLocal", false);
         platformID = intent.getIntExtra("platformID", -1);
         bookName = intent.getStringExtra("bookName");
         bookCode = intent.getStringExtra("bookCode");
@@ -189,11 +190,11 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         });
     }
 
-    private void turnPageTo(int targetNum, int isLocal, boolean isManual) {
+    private void turnPageTo(int targetNum, boolean isLocal, boolean isManual) {
         if (readControl.getTTSService() != null) {
             readControl.ttsAction(Constants.ACTION_STOP, null);
         }
-        Intent intent = new Intent(ChapterActivity.this, BookGet.class);
+        Intent intent = new Intent(ChapterActivity.this, ChapterGetter.class);
         intent.putExtra("isManual", isManual);
         intent.putExtra("isLocal", isLocal);
         intent.putExtra("platformID", platformID);
@@ -320,7 +321,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                     ChapterItem chapterItem = (ChapterItem) msg.obj;
                     int chapterNum = chapterItem.getChapterNum();
                     Log.d(Tag, "chapterNum:" + chapterNum);
-                    turnPageTo(chapterNum, 0, isManual);
+                    turnPageTo(chapterNum, false, isManual);
                 } else {
                     Toast.makeText(ChapterActivity.this, "程序BUG", Toast.LENGTH_SHORT).show();
                 }
