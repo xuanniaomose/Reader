@@ -14,6 +14,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.getter.BookGetter;
+import com.xuanniao.reader.getter.InfoGetter;
 import com.xuanniao.reader.tools.BookDB;
 import com.xuanniao.reader.tools.Constants;
 import com.xuanniao.reader.getter.FileTools;
