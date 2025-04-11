@@ -14,9 +14,12 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.ChapterGetter;
+import com.xuanniao.reader.item.BookDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.ChapterItem;
 import com.xuanniao.reader.tools.*;
-import com.xuanniao.reader.ui.bar.ColorBarFragment;
-import com.xuanniao.reader.ui.bar.TTSBarFragment;
+import com.xuanniao.reader.ui.widget.ColorBarFragment;
+import com.xuanniao.reader.ui.widget.TTSBarFragment;
 
 import java.util.ArrayList;
 import java.util.List;

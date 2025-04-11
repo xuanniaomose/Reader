@@ -17,19 +17,23 @@ import androidx.core.view.WindowInsetsCompat;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.CatalogGetter;
 import com.xuanniao.reader.getter.FileTools;
+import com.xuanniao.reader.item.BookDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.CatalogItem;
 import com.xuanniao.reader.tools.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CatalogActivity extends AppCompatActivity {
     static final String Tag = "CatalogActivity";
     TextView tv_bookName;
     ListView lv_catalog;
     CatalogAdapter catalogAdapter;
-    SharedPreferences sp;
     BookDB bdb;
     public static Handler handler_catalog;
     CatalogItem catalogItem;
+    BookItem bookItem;
     String bookName, bookCode;
     int platformID;
     boolean isLocal;
@@ -58,8 +62,10 @@ public class CatalogActivity extends AppCompatActivity {
         Intent intentGet = getIntent();
         isLocal = intentGet.getBooleanExtra("isLocal", false);
         platformID = intentGet.getIntExtra("platformID", -1);
-        bookName = intentGet.getStringExtra("bookName");
-        bookCode = intentGet.getStringExtra("bookCode");
+//        bookItem = intentGet.getParcelableExtra("bookItem");
+        bookItem = (BookItem) intentGet.getSerializableExtra("bookItem");
+        bookName = bookItem.getBookName();
+        bookCode = bookItem.getBookCode();
         tv_bookName = findViewById(R.id.tv_bookName);
         if (bookName != null && !bookName.isEmpty()) {
             tv_bookName.setText(bookName);
@@ -78,8 +84,7 @@ public class CatalogActivity extends AppCompatActivity {
             Intent intent = new Intent(CatalogActivity.this, CatalogGetter.class);
             intent.putExtra("isLocal", isLocal);
             intent.putExtra("platformID", platformID);
-            intent.putExtra("bookName", bookName);
-            intent.putExtra("bookCode", bookCode);
+            intent.putExtra("bookItem", bookItem);
             startService(intent);
         } else {
             setCatalog(catalogItem);

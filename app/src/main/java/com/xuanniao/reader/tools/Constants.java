@@ -59,4 +59,13 @@ public class Constants {
                 return "别听了 不想读了";
         }
     }
+
+    public static final String BOOK_CODE = "书目";
+    public static final String PLATFORM_NAME = "平台";
+    public static final String AUTHOR = "作者";
+    public static final String CLASSIFY = "类别";
+    public static final String STATUS = "状态";
+    public static final String RENEW_TIME = "更新";
+    public static final String SYNOPSIS = "简介";
+    public static final String COVER_URL = "封面";
 }

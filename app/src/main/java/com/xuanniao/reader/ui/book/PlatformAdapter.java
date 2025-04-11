@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.item.PlatformItem;
 
 import java.util.List;
 

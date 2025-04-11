@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
@@ -22,25 +23,27 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.BookGetter;
+import com.xuanniao.reader.item.BookDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.PlatformDB;
 import com.xuanniao.reader.tools.*;
 import com.xuanniao.reader.ui.book.MainPagesAdapter;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.PlatformItem;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class BookActivity extends FragmentActivity {
     static final String Tag = "BookActivity";
     MainPagesAdapter mainPagesAdapter;
-    ListView lv_book;
     ViewPager viewPager;
     BookDB bdb;
     PlatformDB pdb;
     List<BookItem> localBookList;
     List<PlatformItem> platformList;
-    TextView tv_appName;
-    BookAdapter bookAdapter;
-    SharedPreferences sp, spConfig;
+    SharedPreferences spConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +66,6 @@ public class BookActivity extends FragmentActivity {
 
     private void init() {
         // TODO: 如果sp文件里有有效的上次的阅读记录，那么直接打开阅读界面
-        sp = getSharedPreferences(Constants.SP_BOOK, Context.MODE_PRIVATE);
         spConfig = PreferenceManager.getDefaultSharedPreferences(this);
         bdb = BookDB.getInstance(this, Constants.DB_BOOK);
         pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
@@ -142,12 +144,13 @@ public class BookActivity extends FragmentActivity {
         startService(intent);
     }
 
-    public void openBook(int isLocal, String platformName, String bookName, String bookCode) {
+    public void openBook(boolean isLocal, String platformName, BookItem bookItem) {
         Intent intent = new Intent(BookActivity.this, CatalogActivity.class);
         intent.putExtra("isLocal", isLocal);
         int platformID = -1;
         for (PlatformItem platformItem : platformList) {
             if (Objects.equals(platformItem.getPlatformName(), platformName)) {
+                Log.d(Tag, "list.getName():" + platformItem.getPlatformName());
                 platformID = platformItem.getID();
             }
         }
@@ -155,9 +158,10 @@ public class BookActivity extends FragmentActivity {
             intent.putExtra("platformID", platformID);
         } else {
             Toast.makeText(this, "缺失平台信息，无法打开书目", Toast.LENGTH_SHORT).show();
+            return;
         }
-        intent.putExtra("bookName", bookName);
-        intent.putExtra("bookCode", bookCode);
+        intent.putExtra("bookItem", bookItem);
+//        Log.d(Tag, "bookName:" + bookItem.getBookName() + " | bookCode:" + bookItem.getBookCode());
         startActivity(intent);
     }
 

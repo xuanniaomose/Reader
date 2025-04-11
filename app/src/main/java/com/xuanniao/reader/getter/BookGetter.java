@@ -14,10 +14,12 @@ import androidx.preference.PreferenceManager;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
+import com.xuanniao.reader.item.BookItem;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.PlatformDB;
-import com.xuanniao.reader.ui.*;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.PlatformDB;
+import com.xuanniao.reader.item.PlatformItem;
+import com.xuanniao.reader.tools.Tools;
+import com.xuanniao.reader.ui.book.LocalFragment;
 import com.xuanniao.reader.ui.book.SearchFragment;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -58,10 +60,12 @@ public class BookGetter extends Service {
             List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
             Log.d(Tag, "isLocal:" + isLocal + " | platformID:" + platformID);
             if (isLocal) {
-                BookItem bookitem = FileTools.loadLocalBook(this, Uri.parse(bookUri));
+                BookItem bookItem = FileTools.loadLocalBook(this, Uri.parse(bookUri));
                 List<BookItem> bookList = new ArrayList<>();
-                bookList.add(bookitem);
-                sendMessage(1, bookList, true);
+                bookList.add(bookItem);
+                platformID = (platformID > -1)? platformID :
+                        Tools.getPlatformID(this, bookItem.getPlatformName());
+                sendMessage(platformID, bookList, true, true);
             } else {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
@@ -82,7 +86,7 @@ public class BookGetter extends Service {
      * @param context 上下文
      * @param platformItem 平台
      * @param bookName 书名名称
-     * @param bookCode 书籍编号
+     * @param bookCode 书籍代码
      */
     private void getHtml(Context context, PlatformItem platformItem, String bookName, String bookCode) {
         Log.d(Tag, "path:" + platformItem.getSearchPath());
@@ -118,7 +122,7 @@ public class BookGetter extends Service {
                 Log.d(Tag, "请求失败onFailure");
                 boolean isDetailed = getResultPage(platformItem);
                 List<BookItem> bookList = htmlToBookList(platformItem, htmlContent);
-                sendMessage(platformItem.getID(), bookList, isDetailed);
+                sendMessage(platformItem.getID(), bookList, isDetailed, false);
             }
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
@@ -139,7 +143,7 @@ public class BookGetter extends Service {
                     }
                     List<BookItem> bookList = htmlToBookList(platformItem, htmlContent);
                     boolean isDetailed = getResultPage(platformItem);
-                    sendMessage(1, bookList, isDetailed);
+                    sendMessage(1, bookList, isDetailed, false);
                 } catch (IOException e) {
 //                    throw new RuntimeException(e);
                     Log.e(Tag, "e:" + e.getMessage());
@@ -252,10 +256,13 @@ public class BookGetter extends Service {
         return bookList;
     }
 
-    private void sendMessage(int platformID, List<BookItem> bookList, boolean isDetailed) {
+    private void sendMessage(int platformID, List<BookItem> bookList, boolean isDetailed, boolean isLocal) {
         Message msg = new Message();
         Log.d(Tag, "解读出来是书籍列表");
-        if (!bookList.isEmpty() || Objects.equals(bookList.get(0).getBookName(), "")) {
+        Log.d(Tag, "platformID:" + platformID);
+        Log.d(Tag, "bookList.isEmpty():" + bookList.isEmpty());
+        Log.d(Tag, "BookName:" + bookList.get(0).getBookName());
+        if (bookList.isEmpty() || Objects.equals(bookList.get(0).getBookName(), "")) {
             // 网络错误
             msg.what = 2;
         } else {
@@ -264,7 +271,11 @@ public class BookGetter extends Service {
             msg.arg2 = (isDetailed)? 1 : 0;
             msg.obj = bookList;
         }
-        SearchFragment.handler_setResult.sendMessage(msg);
+        if (isLocal) {
+            LocalFragment.handler_local.sendMessage(msg);
+        } else {
+            SearchFragment.handler_setResult.sendMessage(msg);
+        }
     }
 
     @Override

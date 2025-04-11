@@ -2,7 +2,6 @@ package com.xuanniao.reader.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Paint;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,7 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.BookDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.CatalogItem;
+import com.xuanniao.reader.item.BookDB;
 import com.xuanniao.reader.tools.Constants;
 
 import java.lang.reflect.Field;

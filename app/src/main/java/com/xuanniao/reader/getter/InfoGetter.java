@@ -3,7 +3,6 @@ package com.xuanniao.reader.getter;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
@@ -14,16 +13,16 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.PlatformDB;
-import com.xuanniao.reader.ui.BookItem;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.PlatformDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.PlatformItem;
+import com.xuanniao.reader.ui.book.LocalFragment;
 import com.xuanniao.reader.ui.book.SearchFragment;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.*;
@@ -45,7 +44,8 @@ public class InfoGetter extends Service {
         new Thread(() -> {
             Log.d(Tag, "onStartCommand - startId = " + startId + ", " +
                     "Thread ID = " + Thread.currentThread().getId());
-            boolean isCreate = intent.getBooleanExtra("isCreate", false);
+            boolean isNeedSave = intent.getBooleanExtra("isNeedSave", false);
+            boolean isLocal = intent.getBooleanExtra("isLocal", false);
             int platformID = intent.getIntExtra("platformID", -1);
             int num = intent.getIntExtra("num", 0);
             String bookName = intent.getStringExtra("bookName");
@@ -54,24 +54,22 @@ public class InfoGetter extends Service {
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
             List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
-//                Log.d(Tag, "开始获取详情 " + "isLocal:" + isLocal + " | platformID:" + platformID);
-//                if (platformID != -1) {
-//                    PlatformItem platformItem = platformList.get(platformID);
-//                    getHtml(this, platformItem, num, bookCode, isCreate);
-////                } else {
-////                    for (PlatformItem platformItem : platformList) {
-////                        getHtml(this, platformItem, bookCode, isCreate);
-////                    }
-//                }
+            if (platformID != -1) {
+                PlatformItem platformItem = platformList.get(platformID);
+                getHtml(this, platformItem, num, bookCode, isNeedSave, isLocal);
+            } else {
+                for (PlatformItem platformItem : platformList) {
+                    getHtml(this, platformItem, num, bookCode, isNeedSave, isLocal);
+                }
+            }
             // 本地测试
-            Log.d(Tag, "platformID:" + platformID);
-            PlatformItem platformItem = platformList.get(platformID);
-            String htmlContent = FileTools.loadLocalAssets(this, platformItem, bookCode);
-            BookItem bookItem = htmlToBookInfo(platformItem, htmlContent);
-            Log.d(Tag, "2书名：" + bookItem.getBookName());
-            sendMessage(platformID, num, bookItem);
-
-            if (isCreate) FileTools.infoSave(this, bookItem);
+//            Log.d(Tag, "platformID:" + platformID);
+//            PlatformItem platformItem = platformList.get(platformID);
+//            String htmlContent = FileTools.loadLocalAssets(this, bookCode);
+//            BookItem bookItem = htmlToBookInfo(platformItem, htmlContent);
+//            bookItem.setBookCode(bookCode);
+//            sendMessage(platformID, num, bookItem);
+//            if (isNeedSave) FileTools.infoSave(this, bookItem);
 
             stopSelf();
         }).start();
@@ -84,7 +82,8 @@ public class InfoGetter extends Service {
      * @param platformItem 平台
      * @param bookCode 书籍编号
      */
-    private void getHtml(Context context, PlatformItem platformItem, int num, String bookCode, boolean isCreate) {
+    private void getHtml(Context context, PlatformItem platformItem, int num,
+                         String bookCode, boolean isCreate, boolean isLocal) {
         String url = platformItem.getPlatformUrl() + bookCode + "/" + platformItem.getInfoPath();
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
@@ -107,7 +106,7 @@ public class InfoGetter extends Service {
                 String htmlContent = "0";
                 Log.d(Tag, "请求失败onFailure");
                 BookItem bookItem = htmlToBookInfo(platformItem, htmlContent);
-                sendMessage(platformItem.getID(), num, bookItem);
+                sendMessage(platformItem.getID(), num, bookItem, isLocal);
             }
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
@@ -127,11 +126,12 @@ public class InfoGetter extends Service {
                         htmlContent = "0";
                     }
                     BookItem bookItem = htmlToBookInfo(platformItem, htmlContent);
-                    sendMessage(platformItem.getID(), num, bookItem);
+                    bookItem.setBookCode(bookCode);
+                    sendMessage(platformItem.getID(), num, bookItem, isLocal);
                     if (isCreate) FileTools.infoSave(context, bookItem);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
-//                    Log.e(Tag, "e:" + e.getMessage());
+//                    throw new RuntimeException(e);
+                    Log.e(Tag, "e:" + e.getMessage());
                 }
             }
         });
@@ -159,12 +159,11 @@ public class InfoGetter extends Service {
                 if (infoAttr != null) {
                     Log.d(Tag, "infoAttr:" + infoAttr.html());
                     bookItem = Filter.getBookItem(infoPage, infoFormatJson, infoAttr);
-                    bookItem.setPlatformName(platformItem.getPlatformName());
                 } else {
                     Map<String, String> map = Filter.switchActionToMap(findList, doc);
                     bookItem = Filter.getBookItemByMap(infoPage, infoFormatJson, map);
-                    bookItem.setPlatformName(platformItem.getPlatformName());
                 }
+                bookItem.setPlatformName(platformItem.getPlatformName());
 
                 JSONArray synopsisStep = infoFormatJson.getJSONArray("synopsis");
                 String synopsis = Filter.getAttr(synopsisStep, doc.body());
@@ -187,11 +186,9 @@ public class InfoGetter extends Service {
         return bookItem;
     }
 
-    private void sendMessage(int platformID, int num, BookItem bookItem) {
+    private void sendMessage(int platformID, int num, BookItem bookItem, boolean isLocal) {
         Message msg = new Message();
         Log.d(Tag, "解读出来是书目详情");
-        Log.d(Tag, "3书名：" + bookItem.getBookName());
-
         if (Objects.equals(bookItem.getBookName(), "")) {
             // 网络错误
             msg.what = 2;
@@ -201,7 +198,11 @@ public class InfoGetter extends Service {
             msg.arg2 = num;
             msg.obj = bookItem;
         }
-        SearchFragment.handler_info.sendMessage(msg);
+        if (isLocal) {
+            LocalFragment.handler_local.sendMessage(msg);
+        } else {
+            SearchFragment.handler_info.sendMessage(msg);
+        }
     }
 
     @Override

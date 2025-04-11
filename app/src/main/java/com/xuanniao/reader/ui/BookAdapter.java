@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.CoverGetter;
+import com.xuanniao.reader.item.BookItem;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -70,12 +71,11 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         List<Integer> chapterRead = bookItem.getChapterReadList();
         int chapterTotal = bookItem.getChapterTotal();
         String synopsis = bookItem.getSynopsis();
-        Log.d(Tag, "bookName:" + bookName);
 
         if (coverUrl != null) {
             viewHolder.iv_bookICover.setTag(coverUrl);
             CoverGetter coverGetter = new CoverGetter(context, viewHolder.iv_bookICover);
-            coverGetter.execute(coverUrl);
+            coverGetter.execute(coverUrl, bookName);
         }
 
         viewHolder.tv_bookIName.setText(bookName);

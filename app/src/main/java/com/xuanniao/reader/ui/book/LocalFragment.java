@@ -1,7 +1,9 @@
 package com.xuanniao.reader.ui.book;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.*;
@@ -16,9 +18,9 @@ import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.BookGetter;
 import com.xuanniao.reader.getter.InfoGetter;
-import com.xuanniao.reader.tools.BookDB;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.BookDB;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.getter.FileTools;
 import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,7 @@ public class LocalFragment extends Fragment {
     private boolean isFirstLoad;
     private List<BookItem> bookList;
     private BookAdapter bookAdapter;
-    public static Handler handler_info;
+    public static Handler handler_local, handler_info;
 
     public static SearchFragment newInstance(int index) {
         SearchFragment fragment = new SearchFragment();
@@ -63,6 +65,7 @@ public class LocalFragment extends Fragment {
         lv_book = fragmentView.findViewById(R.id.lv_book);
         bookList = new ArrayList<>();
         bdb = BookDB.getInstance(mContext, Constants.DB_BOOK);
+        handler_local = setLocalHandler();
         handler_info = setInfoHandler();
         return fragmentView;
     }
@@ -99,12 +102,36 @@ public class LocalFragment extends Fragment {
             } else {
                 BookItem bookItem = bookList.get(i);
                 String platformName = bookItem.getPlatformName();
-                String bookName = bookItem.getBookName();
-                String bookCode = bookItem.getBookCode();
-                Log.d(Tag, "bookName:" + bookName + " | platformName" + platformName);
-                bookActivity.openBook(1, platformName, bookName, bookCode);
+                Log.d(Tag, "bookName:" + bookItem.getBookName() + " " + platformName);
+                bookActivity.openBook(true, platformName, bookItem);
             }
         });
+        lv_book.setOnItemLongClickListener((adapterView, view, i, l) -> {
+            Log.d(Tag, "i:" + i);
+            showDeleteWindow(i);
+            return true;
+        });
+    }
+
+    private void showDeleteWindow(int i) {
+        BookItem item = bookList.get(i);
+        AlertDialog dialog = new AlertDialog.Builder(mContext)
+//                .setIcon(R.drawable.ic_logo)//设置标题的图片
+                .setTitle("是否删除")//设置对话框的标题
+                .setMessage(item.getBookName() + "作者" + item.getAuthor())//设置对话框的内容
+                //设置对话框的按钮
+                .setPositiveButton("删除", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        long r = bdb.itemDeleteByID(Constants.TAB_BOOK, new String[]{String.valueOf(i+1)});
+                        bookList.remove(i);
+                        Toast.makeText(mContext, "删除了" + r + "本书", Toast.LENGTH_LONG).show();
+                        setList();
+                    }
+                })
+                .setNeutralButton("取消", (dialogInterface, num) -> {})
+                .create();
+        dialog.show();
     }
 
     @Override
@@ -124,24 +151,46 @@ public class LocalFragment extends Fragment {
             mContext.getContentResolver().takePersistableUriPermission(uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION |
                             Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            // TODO: 这里换成BookGetter
-            BookItem bookItem = FileTools.loadLocalBook(mContext, uri);
-            if (bookItem.getBookName() != null || !bookItem.getBookName().isEmpty()) {
-//                bdb.writeItem(Constants.TAB_BOOK, bookItem);
-                Log.d(Tag, "书目名称:" + bookItem.getBookName());
-//                Intent intent = new Intent(mContext, InfoGetter.class);
-//                intent.putExtra("isLocal", false);
-//                intent.putExtra("isCreate", false);
-//                intent.putExtra("platformID", platformId);
-//                intent.putExtra("bookName", bookName);
-//                startService(intent);
-                bookList.add(bookList.size() - 1, bookItem);
+            Intent intent = new Intent(mContext, BookGetter.class);
+            intent.putExtra("isLocal", true);
+            intent.putExtra("bookUri", String.valueOf(uri));
+            mContext.startService(intent);
+        }
+    }
+
+    private Handler setLocalHandler() {
+        return new Handler(Looper.myLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what != 1) {
+                    Toast.makeText(mContext, "程序BUG", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                int platformID = msg.arg1;
+                Log.d(Tag, "platformID:" + platformID);
+                List<BookItem> list = (List<BookItem>) msg.obj;
+                if (list == null || list.isEmpty()) {
+                    Toast.makeText(getActivity(), "读取本地书目失败", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                for (BookItem item : list) {
+                    if (item.getBookName() == null || item.getBookName().isEmpty()) continue;
+                    if (bookList.contains(item)) continue;
+                    if (msg.arg2 == 0) {
+                        Intent intent = new Intent(mContext, InfoGetter.class);
+                        intent.putExtra("isLocal", false);
+                        intent.putExtra("isCreate", false);
+                        intent.putExtra("platformID", platformID);
+                        intent.putExtra("bookName", item.getBookName());
+                        mContext.startService(intent);
+                    }
+                    bdb.writeItem(Constants.TAB_BOOK, item);
+                    bookList.add(bookList.size() - 1, item);
+                }
                 bookAdapter = new BookAdapter(mContext, bookList);
                 lv_book.setAdapter(bookAdapter);
-            } else {
-                Toast.makeText(getActivity(), "读取本地书目失败", Toast.LENGTH_SHORT).show();
             }
-        }
+        };
     }
 
     private Handler setInfoHandler() {
@@ -150,6 +199,7 @@ public class LocalFragment extends Fragment {
             public void handleMessage(Message msg) {
                 if (msg.what == 1) {
                     BookItem bookItem = (BookItem) msg.obj;
+                    bookList.add(bookItem);
                     bookAdapter = new BookAdapter(mContext, bookList);
                     lv_book.setAdapter(bookAdapter);
                 } else if (msg.what == 2) {

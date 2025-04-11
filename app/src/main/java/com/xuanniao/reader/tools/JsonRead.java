@@ -1,7 +1,7 @@
 package com.xuanniao.reader.tools;
 
 import android.util.Log;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.PlatformItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

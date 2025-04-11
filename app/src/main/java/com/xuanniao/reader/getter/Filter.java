@@ -4,7 +4,7 @@ import android.util.Log;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
-import com.xuanniao.reader.ui.BookItem;
+import com.xuanniao.reader.item.BookItem;
 import okhttp3.Headers;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -327,6 +327,9 @@ public class Filter {
                         if (targetA != null && toA != null && str != null) {
                             str = str.replaceAll(targetA, toA);
                         }
+                        break;
+                    case "trim":
+                        if (str != null) str = str.trim();
                         break;
                 }
             }

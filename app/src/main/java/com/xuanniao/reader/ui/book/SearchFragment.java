@@ -20,6 +20,8 @@ import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.BookGetter;
 import com.xuanniao.reader.getter.CatalogGetter;
 import com.xuanniao.reader.getter.InfoGetter;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.PlatformItem;
 import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -178,7 +180,7 @@ public class SearchFragment extends Fragment {
                             for (int i = 0; i < list.size(); i++) {
                                 BookItem bookItem = list.get(i);
                                 Intent intent = new Intent(context, InfoGetter.class);
-                                intent.putExtra("isCreate", false);
+                                intent.putExtra("isNeedSave", false);
                                 intent.putExtra("platformID", platformID);
                                 intent.putExtra("num", i);
                                 intent.putExtra("bookName", bookItem.getBookName());
@@ -212,6 +214,7 @@ public class SearchFragment extends Fragment {
                     if (min <= platformID && platformID <= max) {
                         BookItem bookItem = (BookItem) msg.obj;
                         Log.d(Tag, "bookName:" + bookItem.getBookName());
+                        Log.d(Tag, "platform:" + bookItem.getPlatformName());
 //                        List<BookItem> list = resultList.get(platformID - 1);
 //                        list.set(num, bookItem);
                         List<BookItem> list = new ArrayList<>();

@@ -12,10 +12,11 @@ import androidx.preference.PreferenceManager;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
+import com.xuanniao.reader.item.ChapterItem;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.PlatformDB;
+import com.xuanniao.reader.item.PlatformDB;
 import com.xuanniao.reader.ui.*;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.PlatformItem;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -92,7 +93,7 @@ public class ChapterGetter extends Service {
      */
     private void getHtml(Context context, boolean isManual, PlatformItem platformItem,
                          String bookCode, String chapterCode, ChapterItem chapterItem) {
-        String url = platformItem.getPlatformUrl() + bookCode + "/" + chapterCode;
+        String url = platformItem.getPlatformUrl() + bookCode + "/" + chapterCode + ".html";
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
         if (cookie.contains("timeLong")) {

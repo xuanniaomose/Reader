@@ -6,17 +6,17 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.CatalogItem;
 import com.xuanniao.reader.tools.Constants;
-import com.xuanniao.reader.tools.PlatformDB;
+import com.xuanniao.reader.item.PlatformDB;
 import com.xuanniao.reader.ui.*;
-import com.xuanniao.reader.ui.book.PlatformItem;
-import com.xuanniao.reader.ui.book.SearchFragment;
+import com.xuanniao.reader.item.PlatformItem;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -25,7 +25,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -47,8 +46,9 @@ public class CatalogGetter extends Service {
                     "Thread ID = " + Thread.currentThread().getId());
             boolean isLocal = intent.getBooleanExtra("isLocal", true);
             int platformID = intent.getIntExtra("platformID", -1);
-            String bookName = intent.getStringExtra("bookName");
-            String bookCode = intent.getStringExtra("bookCode");
+            BookItem bookItem = (BookItem) intent.getSerializableExtra("bookItem");
+            String bookName = bookItem.getBookName();
+            String bookCode = bookItem.getBookCode();
             Log.d(Tag, "bookName:" + bookName + "bookCode:" + bookCode);
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
@@ -60,10 +60,10 @@ public class CatalogGetter extends Service {
             } else {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
-                    getHtml(this, platformItem, bookCode);
+                    getHtml(this, platformItem, bookItem);
                 } else {
                     for (PlatformItem platformItem : platformList) {
-                        getHtml(this, platformItem, bookCode);
+                        getHtml(this, platformItem, bookItem);
                     }
                 }
             }
@@ -78,11 +78,11 @@ public class CatalogGetter extends Service {
      * 从网络获取内容
      * @param context 上下文
      * @param platformItem 平台
-     * @param bookCode 书籍编号
+     * @param bookItem 书目
      */
-    private void getHtml(Context context, PlatformItem platformItem, String bookCode) {
-        if (bookCode == null || platformItem.getCatalogPath() == null) return;
-        String url = platformItem.getPlatformUrl() + bookCode + platformItem.getCatalogPath();
+    private void getHtml(Context context, PlatformItem platformItem, BookItem bookItem) {
+        if (bookItem.getBookCode() == null || platformItem.getCatalogPath() == null) return;
+        String url = platformItem.getPlatformUrl() + bookItem.getBookCode() + platformItem.getCatalogPath();
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
         if (cookie.contains("timeLong")) {
@@ -127,8 +127,8 @@ public class CatalogGetter extends Service {
                     sendMessage(1, catalogItem);
                     if (catalogItem != null && catalogItem.getChapterCodeList() != null
                             && !catalogItem.getChapterCodeList().isEmpty()) {
-                        catalogItem.setBookCode(bookCode);
-                        FileTools.newBook(context, catalogItem);
+                        catalogItem.setBookCode(bookItem.getBookCode());
+                        FileTools.newBook(context, bookItem, catalogItem);
                     }
                 } catch (IOException e) {
 //                    throw new RuntimeException(e);

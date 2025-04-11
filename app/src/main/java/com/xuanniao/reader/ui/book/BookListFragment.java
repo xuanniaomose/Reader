@@ -11,7 +11,8 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
-import com.xuanniao.reader.tools.Constants;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.PlatformItem;
 import com.xuanniao.reader.ui.*;
 
 import java.util.ArrayList;
@@ -102,16 +103,16 @@ public class BookListFragment extends Fragment {
         bookAdapter = new BookAdapter(context, resultList);
         lv_result.setAdapter(bookAdapter);
         Log.d(Tag, "resultList.size():" + resultList.size());
+        Log.d(Tag, "platform:" + resultList.get(0).getPlatformName());
         BookActivity bookActivity = (BookActivity) getActivity();
         lv_result.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                BookItem bookItemL = resultList.get(i);
-                String platform = bookItemL.getPlatformName();
-                String bookName = bookItemL.getBookName();
-                String bookCode = bookItemL.getBookCode();
-                Log.d(Tag, "platform:" + platform + " | bookName:" + bookName + " | bookCode:" + bookCode);
-                bookActivity.openBook(0, platform, bookName, bookCode);
+                BookItem item = resultList.get(i);
+                String platformName = item.getPlatformName();
+//                Log.d(Tag, "platform:" + platformName + " | bookName:" +
+//                        item.getBookName() + " | bookCode:" + item.getBookCode());
+                bookActivity.openBook(false, platformName, item);
             }
         });
         bookAdapter.notifyDataSetInvalidated();

@@ -17,9 +17,10 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.xuanniao.reader.R;
+import com.xuanniao.reader.item.PlatformItem;
 import com.xuanniao.reader.tools.Constants;
 import com.xuanniao.reader.getter.FileTools;
-import com.xuanniao.reader.tools.PlatformDB;
+import com.xuanniao.reader.item.PlatformDB;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

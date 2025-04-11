@@ -9,13 +9,14 @@ import android.util.Log;
 import android.widget.Toast;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.PreferenceManager;
-import com.xuanniao.reader.tools.BookDB;
+import com.xuanniao.reader.item.BookDB;
 import com.xuanniao.reader.tools.Constants;
 import com.xuanniao.reader.tools.JsonRead;
-import com.xuanniao.reader.ui.BookItem;
-import com.xuanniao.reader.ui.CatalogItem;
-import com.xuanniao.reader.ui.ChapterItem;
-import com.xuanniao.reader.ui.book.PlatformItem;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.CatalogItem;
+import com.xuanniao.reader.item.ChapterItem;
+import com.xuanniao.reader.item.PlatformItem;
+import com.xuanniao.reader.tools.Tools;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,16 +37,18 @@ public class FileTools {
      * @param catalogItem 目录
      * @return 创建结果
      */
-    public static boolean newBook(Context context, CatalogItem catalogItem) {
+    public static boolean newBook(Context context, BookItem bookItem, CatalogItem catalogItem) {
         String catalogFileName = "0000目录.txt";
         try {
             DocumentFile catalogFile = getDocumentFile(context, catalogItem.getBookName(), catalogFileName);
+            bookItem.setUriStr(String.valueOf(catalogFile.getUri()));
             OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
             List<String> chapterCodeList = catalogItem.getChapterCodeList();
             List<String> chapterTitleList = catalogItem.getChapterTitleList();
-            writer.write("bookCode:" + catalogItem.getBookCode() + "\r\n");
-            writer.write("platformName:" + catalogItem.getPlatformName() + "\r\n");
+            writer.write(Constants.BOOK_CODE + ":" + catalogItem.getBookCode() + "\r\n");
+            writer.write(Constants.PLATFORM_NAME + ":" + catalogItem.getPlatformName() + "\r\n");
+            writeInfo(context, bookItem, writer);
             for (int i = 0; i < chapterCodeList.size(); i++) {
                 writer.write((i + 1) + "/x/" + chapterTitleList.get(i)
                         + "/x/" + chapterCodeList.get(i) + "\r\n");
@@ -71,23 +74,7 @@ public class FileTools {
             DocumentFile catalogFile = getDocumentFile(context, bookItem.getBookName(), catalogFileName);
             OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-            String author = bookItem.getAuthor();
-            if (author != null) writer.write("author:" + author + "\r\n");
-            String classify = bookItem.getClassify();
-            if (classify != null) writer.write("classify:" + classify + "\r\n");
-            String status = bookItem.getStatus();
-            if (status != null) writer.write("status:" + status + "\r\n");
-            long renewTimeLong = bookItem.getRenewTime();
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINESE);
-            String renewTime = dateFormat.format(renewTimeLong);
-            if (renewTime != null) writer.write("renewTime:" + renewTime + "\r\n");
-            String synopsis = bookItem.getSynopsis();
-            if (synopsis != null) writer.write("synopsis:" + synopsis + "\r\n");
-            String coverUrl = bookItem.getCoverUrl();
-            if (coverUrl != null) writer.write("coverUrl:" + coverUrl + "\r\n");
-            writer.write("coverUrl:" + bookItem.getCoverUrl() + "\r\n");
-            CoverGetter coverGetter = new CoverGetter(context);
-            coverGetter.execute(coverUrl);
+            writeInfo(context, bookItem, writer);
             writer.close();
             out.close();
             return true;
@@ -95,6 +82,23 @@ public class FileTools {
             Log.e(Tag, e.getMessage());
             return false;
         }
+    }
+
+    private static void writeInfo(Context context, BookItem bookItem, BufferedWriter writer) throws IOException {
+        String author = bookItem.getAuthor();
+        if (author != null) writer.write(Constants.AUTHOR + ":" + author + "\r\n");
+        String status = bookItem.getStatus();
+        if (status != null) writer.write(Constants.STATUS + ":" + status + "\r\n");
+        String classify = bookItem.getClassify();
+        if (classify != null) writer.write(Constants.CLASSIFY + ":" + classify + "\r\n");
+        String renewTime = Tools.getStringTime(bookItem.getRenewTime());
+        if (renewTime != null) writer.write(Constants.RENEW_TIME + ":" + renewTime + "\r\n");
+        String synopsis = bookItem.getSynopsis();
+        if (synopsis != null) writer.write(Constants.SYNOPSIS + ":" + synopsis + "\r\n");
+        String coverUrl = bookItem.getCoverUrl();
+        if (coverUrl != null) writer.write(Constants.COVER_URL + ":" + coverUrl + "\r\n");
+        CoverGetter coverGetter = new CoverGetter(context);
+        coverGetter.execute(coverUrl, bookItem.getBookName());
     }
 
     /**
@@ -158,8 +162,6 @@ public class FileTools {
                 platformItem.setPlatformName("0");
                 platformList.add(platformItem);
             } else {
-//                Log.d(Tag, "json：" + platformJson);
-//                JSONObject j = JSONObject.parseObject(platformJson);
                 JSONObject j = new JSONObject(platformJson);
                 platformList = JsonRead.JsonToPlatformList(j);
                 if (platformList == null || platformList.isEmpty()) {
@@ -190,25 +192,22 @@ public class FileTools {
             bookItem.setBookName(directory.getName());
             int figures = 4;
             for (DocumentFile file : directory.listFiles()) {
-                if (file.isFile() && file.getName().contains("目录")) {
+                if (file.isFile() && file.getName() != null && file.getName().contains("目录")) {
                     try {
                         InputStream inputStream = context.getContentResolver().openInputStream(file.getUri());
                         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
                         String line;
                         while ((line = br.readLine()) != null) {
-                            Log.d(Tag, "line:" + line);
-                            if (line.contains("bookCode")) {
-                                bookItem.setBookCode(line.replace("bookCode:", ""));
-                            } else if (line.contains("platformName")) {
-                                bookItem.setPlatformName(line.replace("platformName:", ""));
-                            }
+                            bookItem = getBookItem(bookItem, line);
                         }
+                        Log.d(Tag, "classify:" + bookItem.getClassify());
                     } catch (IOException ignored) {}
                 }
             }
             List<Integer> savedChapterList = new ArrayList<>();
             for (DocumentFile file : directory.listFiles()) {
-                if (file.isFile() && file.getName() != null && !file.getName().equals("0000目录")) {
+                if (file.isFile() && file.getName() != null && !file.getName().contains("目录")
+                        && !file.getName().contains("cover")) {
                     String fileName = file.getName();
                     int num = Integer.parseInt(fileName.substring(0, figures));
                     savedChapterList.add(num);
@@ -217,6 +216,29 @@ public class FileTools {
             bookItem.setChapterSavedList(savedChapterList);
             BookDB bdb = BookDB.getInstance(context, Constants.DB_BOOK);
             bdb.writeItem(Constants.TAB_BOOK, bookItem);
+        }
+        return bookItem;
+    }
+
+    public static BookItem getBookItem(BookItem bookItem, String line) {
+        Log.d(Tag, "line:" + line);
+        if (line.contains(Constants.BOOK_CODE)) {
+            bookItem.setBookCode(line.replace(Constants.BOOK_CODE + ":", ""));
+        } else if (line.contains(Constants.PLATFORM_NAME)) {
+            bookItem.setPlatformName(line.replace(Constants.PLATFORM_NAME + ":", ""));
+        } else if (line.contains(Constants.AUTHOR)) {
+            bookItem.setAuthor(line.replace(Constants.AUTHOR + ":", ""));
+        } else if (line.contains(Constants.CLASSIFY)) {
+            bookItem.setClassify(line.replace(Constants.CLASSIFY + ":", ""));
+        } else if (line.contains(Constants.STATUS)) {
+            bookItem.setStatus(line.replace(Constants.STATUS + ":", ""));
+        } else if (line.contains(Constants.RENEW_TIME)) {
+            String time = line.replace(Constants.RENEW_TIME + ":", "");
+            bookItem.setRenewTime(Tools.getLongTime(time));
+        } else if (line.contains(Constants.SYNOPSIS)) {
+            bookItem.setSynopsis(line.replace(Constants.SYNOPSIS + ":", ""));
+        } else if (line.contains(Constants.COVER_URL)) {
+            bookItem.setCoverUrl(line.replace(Constants.COVER_URL + ":", ""));
         }
         return bookItem;
     }
@@ -241,7 +263,7 @@ public class FileTools {
                     catalogItem.setBookCode(line.replace("bookCode:", ""));
                 } else if (line.contains("platformName")) {
                     catalogItem.setPlatformName(line.replace("platformName:", ""));
-                } else {
+                } else if (line.contains("/x/")) {
                     String[] l = line.split("/x/");
                     catalogItem.addChapterTitle(l[1]);
                     catalogItem.addChapterCode(l[2]);
@@ -292,12 +314,10 @@ public class FileTools {
 
     /**
      * 从本地assets文件夹获取内容
-     * @param platformItem 平台列表
-     * @param bookName 书籍名称
-     * @param bookCode 书籍代码
-     * @param chapterCode 章节代码
+     * @param context 上下文
+     * @param fileName 文件名
      */
-    static String loadLocalAssets(Context context, PlatformItem platformItem, String fileName) {
+    static String loadLocalAssets(Context context, String fileName) {
         fileName = fileName + ".html";
         Log.d(Tag, "fileName:" + fileName);
         String htmlContent = "";
@@ -384,7 +404,7 @@ public class FileTools {
         }
         DocumentFile file = bookDir.findFile(fileName);
         if (file == null || !file.isFile()) {
-            file = (fileName.equals("cover.jpg"))?
+            file = (fileName.endsWith(".jpg"))?
                     bookDir.createFile("image/jpeg", fileName) :
                     bookDir.createFile("text/plain", fileName);
             if (file != null) Log.d(Tag, "文件创建成功");
