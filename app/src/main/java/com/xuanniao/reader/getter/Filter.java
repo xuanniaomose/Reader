@@ -23,6 +23,10 @@ public class Filter {
             "avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
 
     public static Headers setHeaders(String cookie) {
+        if (cookie.contains("timeStamp")) {
+            String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+            cookie = cookie.replaceAll("timeStamp", timeStamp);
+        }
         Headers headers;
         Headers.Builder headersbuilder = new Headers.Builder();
         headersbuilder.add("User-Agent", userAgent);
@@ -44,9 +48,9 @@ public class Filter {
             String attr = attrArray[i];
             if (attr == null) continue;
             JSONArray attrStepJson = pageJson.getJSONArray(attr);
-            Log.d(Tag, "htmlListItem:" + htmlListItem);
+//            Log.d(Tag, "htmlListItem:" + htmlListItem);
             String str = getAttr(attrStepJson, htmlListItem);
-            Log.d(Tag, "str:" + str);
+//            Log.d(Tag, "str:" + str);
             if (str == null) continue;
             switch (attr) {
                 case "resultList":
@@ -99,7 +103,7 @@ public class Filter {
 //                attrValue = map.get(attr);
 //            }
             attrValue = map.get(attr);
-            Log.d(Tag, "attrValue:" + attrValue);
+//            Log.d(Tag, "attrValue:" + attrValue);
             if (attr == null) continue;
             switch (attr) {
                 case "resultList":
@@ -133,23 +137,23 @@ public class Filter {
             try {
                 JSONObject actionStep = actionArray.getJSONObject(i);
                 String action = actionStep.getString("action");
-                Log.d(Tag, "action:" + action);
+//                Log.d(Tag, "action:" + action);
                 if (!Objects.equals(action, "select")) return null;
 
                 String selectBy = actionStep.getString("by");
-                Log.d(Tag, "selectBy:" + selectBy);
+//                Log.d(Tag, "selectBy:" + selectBy);
                 String selectGet = actionStep.getString("get");
                 String from = actionStep.getString("from");
-                Log.d(Tag, "selectGet:" + selectGet);
+//                Log.d(Tag, "selectGet:" + selectGet);
                 if (selectBy != null && i == 0) {
                     elements = doc.select(selectBy);
-                    Log.d(Tag, "i=0 elements:" + elements.html());
+//                    Log.d(Tag, "i=0 elements:" + elements.html());
                 } else if (selectBy != null && i > 0 && el != null) {
                     elements = el.select(selectBy);
-                    Log.d(Tag, "i>0 elements:" + elements.html());
+//                    Log.d(Tag, "i>0 elements:" + elements.html());
                 }
                 if (i == actionArray.size() - 1) {
-                    Log.d(Tag, "i=max elements:" + elements.html());
+//                    Log.d(Tag, "i=max elements:" + elements.html());
                     if (from != null) {
                         elements.subList(Integer.parseInt(from), elements.size());
                     }
@@ -157,11 +161,10 @@ public class Filter {
                 }
                 if (elements != null && selectGet != null) {
                     el = elements.get(Integer.parseInt(selectGet));
-                    Log.d(Tag, "el:" + el.html());
+//                    Log.d(Tag, "el:" + el.html());
                 }
             } catch (JSONException | IndexOutOfBoundsException e) {
                 Log.e(Tag, "挑选成组时出错:" + e);
-//                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                 return null;
             }
         }
@@ -389,7 +392,6 @@ public class Filter {
                 }
             } catch (JSONException | IndexOutOfBoundsException e) {
                 Log.e(Tag, "清洗段落时出错:" + e);
-//                Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
                 return null;
             }
         }

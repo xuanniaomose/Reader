@@ -56,7 +56,8 @@ public class CatalogGetter extends Service {
             Log.d(Tag, "isLocal:" + isLocal + " | platformID:" + platformID);
             if (isLocal) {
                 CatalogItem catalogItem = FileTools.loadLocalCatalog(this, bookName);
-                sendMessage(1, catalogItem);
+                if (catalogItem == null) return;
+                sendMessage(1, catalogItem, 0);
             } else {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
@@ -67,6 +68,7 @@ public class CatalogGetter extends Service {
                     }
                 }
             }
+            // 本地测试
 //            PlatformItem platformItem = platformList.get(platformID);
 //            FileTools.loadLocalAssets(this, platformItem, bookName);
             stopSelf();
@@ -82,13 +84,10 @@ public class CatalogGetter extends Service {
      */
     private void getHtml(Context context, PlatformItem platformItem, BookItem bookItem) {
         if (bookItem.getBookCode() == null || platformItem.getCatalogPath() == null) return;
-        String url = platformItem.getPlatformUrl() + bookItem.getBookCode() + platformItem.getCatalogPath();
+        String url = platformItem.getPlatformUrl() + bookItem.getBookCode()
+                + "/" + platformItem.getCatalogPath();
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
-        if (cookie.contains("timeLong")) {
-            String timeLong = String.valueOf(System.currentTimeMillis());
-            cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
-        }
         Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
                 .url(url)
@@ -101,104 +100,156 @@ public class CatalogGetter extends Service {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                String htmlContent = "0";
-                Log.d(Tag, "请求失败onFailure");
-                CatalogItem catalogItem = htmlToCatalog(platformItem, htmlContent);
-                sendMessage(platformItem.getID(), catalogItem);
+                getFailure(platformItem.getPlatformName(), platformItem.getID());
             }
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                String htmlContent;
-                try {
-                    if (response.body() != null) {
-                        Log.d(Tag, "请求成功");
-                        String charsetName = platformItem.getCharsetName();
-                        charsetName = (charsetName.isEmpty())?
-                                PreferenceManager.getDefaultSharedPreferences(context)
-                                        .getString("charsetName", "UTF-8") : charsetName;
-                        Log.d(Tag, "charsetName:" + charsetName);
-                        htmlContent = new String(response.body().bytes(), charsetName);
-                        Log.d(Tag, "htmlContent:" + htmlContent);
-                    } else {
-                        Log.d(Tag, "请求失败 没有返回值");
-                        htmlContent = "0";
-                    }
-                    CatalogItem catalogItem = htmlToCatalog(platformItem, htmlContent);
-                    sendMessage(1, catalogItem);
-                    if (catalogItem != null && catalogItem.getChapterCodeList() != null
-                            && !catalogItem.getChapterCodeList().isEmpty()) {
-                        catalogItem.setBookCode(bookItem.getBookCode());
-                        FileTools.newBook(context, bookItem, catalogItem);
-                    }
-                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-                    Log.e(Tag, "e:" + e.getMessage());
-                }
+                String htmlContent = responseToContent(context, response.body(),
+                        platformItem.getCharsetName(), platformItem.getCatalogError());
+                htmlToCatalog(context, platformItem, bookItem.getBookCode(),
+                        htmlContent, 0);
             }
         });
     }
 
-    static CatalogItem htmlToCatalog(PlatformItem platformItem, String htmlContent) {
-        CatalogItem catalogItem = new CatalogItem();
-        catalogItem.setPlatformName(platformItem.getPlatformName());
+    void htmlToCatalog(Context context, PlatformItem platformItem, String bookCode,
+                       String htmlContent, int part) {
 //        Log.d(Tag, "htmlContent:" + htmlContent);
-        String catalogError = platformItem.getCatalogError();
-        if (htmlContent == null || htmlContent.contains(catalogError) || htmlContent.equals("0")) {
-            Log.d(Tag, "请求失败");
-            catalogItem.addChapterCode("");
-        } else {
-            Log.d(Tag, "开始匹配CatalogList");
-            String[] catalogPage = platformItem.getCatalogPage();
-//                Log.d(Tag, "catalogPage:" + catalogPage);
-            JSONObject catalogFormatJson = null;
-            try {
-                catalogFormatJson = JSONObject.parseObject(platformItem.getCatalogPageFormat());
-                if (catalogFormatJson == null) return null;
-                JSONArray findList = catalogFormatJson.getJSONArray("catalogList");
-                Document doc = Jsoup.parse(htmlContent);
-//                    Document doc = Jsoup.parseBodyFragment(htmlContent);
-                JSONArray bookNameStep = catalogFormatJson.getJSONArray("bookName");
-                String bookName = Filter.getAttr(bookNameStep, doc.head());
-                catalogItem.setBookName(bookName);
-
-                JSONArray authorStep = catalogFormatJson.getJSONArray("author");
-                if (authorStep != null) {
-                    String author = Filter.getAttr(authorStep, doc.head());
+        CatalogItem catalogItem = new CatalogItem();
+        catalogItem.setBookCode(bookCode);
+        catalogItem.setPlatformName(platformItem.getPlatformName());
+        Log.d(Tag, "开始匹配CatalogList");
+        JSONObject catalogFormatJson;
+        Document doc = Jsoup.parse(htmlContent);
+        try {
+            catalogFormatJson = JSONObject.parseObject(platformItem.getCatalogPageFormat());
+            if (catalogFormatJson == null) return;
+            JSONArray findPage = catalogFormatJson.getJSONArray("catalogPartPage");
+            if (part == 0 && findPage != null) {
+                Log.d(Tag, "正在解析首页:" + part);
+                Elements catalogPages = Filter.switchActionToElements(findPage, doc);
+                if (catalogPages == null) return;
+                JSONArray pageCodeStep = catalogFormatJson.getJSONArray("catalogPageCode");
+                JSONArray pageNameStep = catalogFormatJson.getJSONArray("catalogPageName");
+                int total = catalogPages.size();
+                for (int i = 0; i < total; i++) {
+                    Element pageAttr = catalogPages.get(i);
+                    String pageCode = Filter.getAttr(pageCodeStep, pageAttr);
+                    String pageName = Filter.getAttr(pageNameStep, pageAttr);
+                    // 根据pageCode下载各个部分的目录
+                    getPartPageHtml(context, platformItem, bookCode,
+                            pageCode, (i + 1) * 100 + total);
                 }
-
-                Elements catalogAttrs = Filter.switchActionToElements(findList, doc);
-                if (catalogAttrs == null) return null;
-                JSONArray chapterCodeStep = catalogFormatJson.getJSONArray("chapterCode");
-                JSONArray chapterTitleStep = catalogFormatJson.getJSONArray("chapterTitle");
-                for (Element catalogAttr : catalogAttrs) {
-                    Log.d(Tag, "catalogAttr:" + catalogAttr.text());
-                    String chapterCode = Filter.getAttr(chapterCodeStep, catalogAttr);
-                    catalogItem.addChapterCode(chapterCode);
-                    String chapterTitle = Filter.getAttr(chapterTitleStep, catalogAttr);
-                    catalogItem.addChapterTitle(chapterTitle);
-                    Log.d(Tag, "chapterTitle:" + chapterTitle + "  chapterCode:" + chapterCode);
-                }
-            } catch (JSONException e) {
-//                    Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
-                Log.e(Tag, "e:" + e.getMessage());
-                return null;
+            } else {
+                Log.d(Tag, "正在解析part:" + part);
+                catalogItem = getCatalogItem(catalogFormatJson, doc, catalogItem);
             }
-            Log.d(Tag, "结束匹配CatalogList");
-//                figures = String.valueOf(catalogItem.getChapterCodeList().size()).length();
-//                figures = (figures < 3)? 4 : figures;
+        } catch (JSONException e) {
+            Log.e(Tag, "e:" + e.getMessage());
+            return;
         }
-        return catalogItem;
+        Log.d(Tag, "结束匹配CatalogList");
+        if (catalogItem != null) sendMessage(1, catalogItem, part);
     }
 
-    private void sendMessage(int platformID, CatalogItem catalogItem) {
+    private static CatalogItem getCatalogItem(JSONObject fJson, Document doc, CatalogItem item) {
+        JSONArray findList = fJson.getJSONArray("catalogList");
+
+        JSONArray bookNameStep = fJson.getJSONArray("bookName");
+        String bookName = Filter.getAttr(bookNameStep, doc.head());
+        item.setBookName(bookName);
+
+        Elements catalogAttrs = Filter.switchActionToElements(findList, doc);
+        if (catalogAttrs == null) return null;
+        JSONArray chapterCodeStep = fJson.getJSONArray("chapterCode");
+        JSONArray chapterTitleStep = fJson.getJSONArray("chapterTitle");
+        for (Element catalogAttr : catalogAttrs) {
+            Log.d(Tag, "catalogAttr:" + catalogAttr.text());
+            String chapterCode = Filter.getAttr(chapterCodeStep, catalogAttr);
+            item.addChapterCode(chapterCode);
+            String chapterTitle = Filter.getAttr(chapterTitleStep, catalogAttr);
+            item.addChapterTitle(chapterTitle);
+            Log.d(Tag, "chapterTitle:" + chapterTitle + "  chapterCode:" + chapterCode);
+        }
+        return item;
+    }
+
+    void getPartPageHtml(Context context, PlatformItem item, String bookCode,
+                         String pageCode, int part) {
+        String strUrl = item.getPlatformUrl() + bookCode + "/" + pageCode;
+        Log.d("url", strUrl);
+        String cookie = item.getPlatformCookie();
+        Log.d(Tag, "Cookie:" + cookie);
+        Request request = new Request.Builder()
+                .url(strUrl)
+                .headers(Filter.setHeaders(cookie))
+                .build();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(12, TimeUnit.SECONDS)
+                .build();
+        Call call = okHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                getFailure(item.getPlatformName(), item.getID());
+            }
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                String htmlContent = responseToContent(context, response.body(),
+                        item.getCharsetName(), item.getCatalogError());
+                htmlToCatalog(context, item, bookCode, htmlContent, part);
+            }
+        });
+    }
+
+    private void getFailure(String platformName, int platformID) {
+        Log.d(Tag, "请求失败onFailure");
+        CatalogItem catalogItem = new CatalogItem();
+        catalogItem.setPlatformName(platformName);
+        catalogItem.addChapterCode("");
+        sendMessage(platformID, catalogItem, 0);
+    }
+
+    private String responseToContent(Context context, okhttp3.ResponseBody responseBody,
+                                     String charsetName, String catalogError) {
+        String htmlContent;
+        try {
+            if (responseBody != null) {
+                Log.d(Tag, "请求成功");
+                if (charsetName == null || charsetName.isEmpty()) {
+                    charsetName = PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString("charsetName", "UTF-8");
+                }
+                Log.d(Tag, "charsetName:" + charsetName);
+                htmlContent = new String(responseBody.bytes(), charsetName);
+                Log.d(Tag, "htmlContent:" + htmlContent);
+            } else {
+                Log.d(Tag, "请求失败 没有返回值");
+                htmlContent = "0";
+            }
+            if (htmlContent.contains(catalogError)) {
+                Log.d(Tag, "请求失败");
+                htmlContent = "0";
+            }
+        } catch (IOException e) {
+//            throw new RuntimeException(e);
+            htmlContent = "0";
+        }
+        return htmlContent;
+    }
+
+    private void sendMessage(int platformID, CatalogItem catalogItem, int part) {
         Message msg = new Message();
         Log.d(Tag, "解读出来是目录列表");
-        if (Objects.equals(catalogItem.getChapterCodeList().get(0), "")) {
+        if (catalogItem.getChapterCodeList() == null ||
+                catalogItem.getChapterCodeList().isEmpty() ||
+                Objects.equals(catalogItem.getChapterCodeList().get(0), "")) {
             // 网络错误
             msg.what = 2;
         } else {
             msg.what = 1;
             msg.arg1 = platformID;
+            msg.arg2 = part;
             msg.obj = catalogItem;
         }
         CatalogActivity.handler_catalog.sendMessage(msg);

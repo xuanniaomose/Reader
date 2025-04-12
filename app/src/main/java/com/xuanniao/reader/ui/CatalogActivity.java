@@ -1,10 +1,8 @@
 package com.xuanniao.reader.ui;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.*;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -93,25 +91,12 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void buttonSet() {
         Button btn_setting = findViewById(R.id.btn_catalogSetting);
-        btn_setting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(CatalogActivity.this, SettingActivity.class);
-                startActivity(intent);
-//                Intent intent = new Intent(CatalogActivity.this, BookGet.class);
-//                intent.putExtra("isLocal", 1);
-//                intent.putExtra("bookName", bookName);
-//                intent.putExtra("bookCode", bookCode);
-//                startService(intent);
-            }
+        btn_setting.setOnClickListener(view -> {
+            Intent intent = new Intent(CatalogActivity.this, SettingActivity.class);
+            startActivity(intent);
         });
         Button btn_file = findViewById(R.id.btn_file);
-        btn_file.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(Tag, "点击了:");
-            }
-        });
+        btn_file.setOnClickListener(view -> Log.d(Tag, "点击了:"));
     }
 
     private Handler setCatalogHandler() {
@@ -119,8 +104,22 @@ public class CatalogActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 1) {
-                    catalogItem = (CatalogItem) msg.obj;
-                    setCatalog(catalogItem);
+                    if (msg.arg2 > 200) {
+                        // 是分好几页显示的目录
+                        int part = msg.arg2 / 100;
+                        int total = msg.arg2 % 100;
+                        Log.d(Tag, "part:" + part + " | total:" + total);
+                        CatalogItem item = (CatalogItem) msg.obj;
+                        List<String> titleList = item.getChapterTitleList();
+                        List<String> codeList = item.getChapterCodeList();
+                        catalogItem.appendTitleList(titleList);
+                        catalogItem.appendCodeList(codeList);
+                        setCatalog(catalogItem);
+                        FileTools.appendCatalog(CatalogActivity.this, catalogItem);
+                    } else {
+                        catalogItem = (CatalogItem) msg.obj;
+                        FileTools.newBook(CatalogActivity.this, bookItem, catalogItem);
+                    }
                 } else if (msg.what == 2) {
                     Toast.makeText(CatalogActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
                 } else {

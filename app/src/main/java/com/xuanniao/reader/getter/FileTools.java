@@ -50,8 +50,8 @@ public class FileTools {
             writer.write(Constants.PLATFORM_NAME + ":" + catalogItem.getPlatformName() + "\r\n");
             writeInfo(context, bookItem, writer);
             for (int i = 0; i < chapterCodeList.size(); i++) {
-                writer.write((i + 1) + "/x/" + chapterTitleList.get(i)
-                        + "/x/" + chapterCodeList.get(i) + "\r\n");
+                writer.write((i + 1) + "/ /" + chapterTitleList.get(i)
+                        + "/ /" + chapterCodeList.get(i) + "\r\n");
             }
             writer.close();
             out.close();
@@ -75,6 +75,32 @@ public class FileTools {
             OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
             writeInfo(context, bookItem, writer);
+            writer.close();
+            out.close();
+            return true;
+        } catch (IOException e) {
+            Log.e(Tag, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 续写目录
+     * @param catalogItem 目录
+     * @return 创建结果
+     */
+    public static boolean appendCatalog(Context context, CatalogItem catalogItem) {
+        String catalogFileName = "0000目录.txt";
+        try {
+            DocumentFile catalogFile = getDocumentFile(context, catalogItem.getBookName(), catalogFileName);
+            OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri(), "wa");
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+            List<String> chapterCodeList = catalogItem.getChapterCodeList();
+            List<String> chapterTitleList = catalogItem.getChapterTitleList();
+            for (int i = 0; i < chapterCodeList.size(); i++) {
+                writer.write((i + 1) + "/ /" + chapterTitleList.get(i)
+                        + "/ /" + chapterCodeList.get(i) + "\r\n");
+            }
             writer.close();
             out.close();
             return true;

@@ -15,8 +15,6 @@ public class CatalogItem implements Parcelable {
     List<String> chapterTitleList;
 
 
-
-
     public void setPlatformName(String platformName) {
         this.platformName = platformName;
     }
@@ -50,6 +48,21 @@ public class CatalogItem implements Parcelable {
         }
         this.chapterTitleList.add(chapterTitle);
     }
+
+    public void appendCodeList(List<String> codeList) {
+        if (chapterCodeList == null) {
+            chapterCodeList = new ArrayList<>();
+        }
+        this.chapterCodeList.addAll(codeList);
+    }
+
+    public void appendTitleList(List<String> titleList) {
+        if (chapterTitleList == null) {
+            chapterTitleList = new ArrayList<>();
+        }
+        this.chapterTitleList.addAll(titleList);
+    }
+
 
 
     public String getPlatformName() {
