@@ -3,18 +3,15 @@ package com.xuanniao.reader.getter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
 import androidx.documentfile.provider.DocumentFile;
-import com.xuanniao.reader.item.ChapterItem;
 
 import java.io.*;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,17 +42,20 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
         imageUrl = params[0];
         String bookName = (params.length > 1)? params[1] : null;
         try {
-            // 1. 检查本地缓存
-            File file = getImageFile(imageUrl);
-            if (!isOnlyDownload && file.exists()) {
-                return BitmapFactory.decodeFile(file.getAbsolutePath());
+            // 1. 检查缓存
+            if (!isOnlyDownload) {
+                WeakReference<ImageView> imageViewReference = mImageCache.get(imageUrl);
+                if (imageViewReference != null) {
+                    Log.d(Tag, "imageViewReference: true");
+                    return imageViewReference.get().getDrawingCache();
+                }
             }
-
+            // 2. 检查本地文件
             if (!isOnlyDownload && bookName != null) {
                 String fileName = "cover.jpg";
-                DocumentFile imageFile = FileTools.getDocumentFile(context, bookName, fileName);
-//                Log.d(Tag, "imageFile:" + imageFile);
-                if (imageFile.exists()) {
+                DocumentFile imageFile = FileTools.getDocumentFileN(context, bookName, fileName);
+                Log.d(Tag, "imageFile:" + (imageFile == null));
+                if (imageFile != null && imageFile.exists()) {
                     try {
                         InputStream is = context.getContentResolver().openInputStream(imageFile.getUri());
                         Log.d(Tag, "InputStream:" + (is != null));
@@ -66,7 +66,6 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
                     }
                 }
             }
-
             // 2. 网络下载
             URL url = new URL(imageUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -80,7 +79,7 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
 
             // 3. 保存到本地
 //            saveBitmapToLocal(imageUrl, bitmap);
-            if (bookName != null) bitmapSave(context, bookName, imageUrl, bitmap);
+            if (bookName != null) bitmapSave(context, bookName, bitmap);
             Log.d(Tag, "图片过程完成");
             return bitmap;
         } catch (IOException e) {
@@ -116,12 +115,12 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
      * @param bitmap 位图
      * @return 存储结果
      */
-    public static int bitmapSave(Context context, String bookName, String url, Bitmap bitmap) {
+    public static int bitmapSave(Context context, String bookName, Bitmap bitmap) {
 //        String fileName = url.hashCode() + ".jpg";
         String fileName = "cover.jpg";
         Log.d(Tag, "bookName:" + bookName);
         try {
-            DocumentFile imageFile = FileTools.getDocumentFile(context, bookName, fileName);
+            DocumentFile imageFile = FileTools.getDocumentFileC(context, bookName, fileName);
             if (imageFile == null) {
                 Log.d(Tag, "图像路径错误");
                 return -2;
@@ -139,26 +138,5 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
             Log.d(Tag, "存储过程错误");
             return -3;
         }
-    }
-
-    // 保存到本地文件
-    private void saveBitmapToLocal(String url, Bitmap bitmap) {
-        try {
-            File imageFile = getImageFile(String.valueOf(url.hashCode()));
-            FileOutputStream fos = new FileOutputStream(imageFile);
-            if (bitmap != null) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos); // 压缩质量80%
-            }
-            fos.flush();
-            fos.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // 获取本地文件路径
-    private File getImageFile(String url) {
-        String filename = String.valueOf(url.hashCode());
-        return new File(context.getCacheDir(), filename);
     }
 }

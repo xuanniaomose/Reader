@@ -60,7 +60,7 @@ public class Constants {
         }
     }
 
-    public static final String BOOK_CODE = "书目";
+    public static final String BOOK_CODE = "书码";
     public static final String PLATFORM_NAME = "平台";
     public static final String AUTHOR = "作者";
     public static final String CLASSIFY = "类别";

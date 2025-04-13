@@ -50,7 +50,7 @@ public class InfoGetter extends Service {
             int num = intent.getIntExtra("num", 0);
             String bookName = intent.getStringExtra("bookName");
             String bookCode = intent.getStringExtra("bookCode");
-            Log.d(Tag, "bookName:" + bookName + " bookCode:" + bookCode);
+//            Log.d(Tag, "bookName:" + bookName + " bookCode:" + bookCode);
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
             List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
@@ -85,13 +85,13 @@ public class InfoGetter extends Service {
     private void getHtml(Context context, PlatformItem platformItem, int num,
                          String bookCode, boolean isCreate, boolean isLocal) {
         String url = platformItem.getPlatformUrl() + bookCode + "/" + platformItem.getInfoPath();
-        Log.d("url", url);
+//        Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
         if (cookie.contains("timeLong")) {
             String timeLong = String.valueOf(System.currentTimeMillis());
             cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
         }
-        Log.d(Tag, "Cookie:" + cookie);
+//        Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
                 .url(url)
                 .headers(Filter.setHeaders(cookie))
@@ -118,9 +118,9 @@ public class InfoGetter extends Service {
                         charsetName = (charsetName.isEmpty())?
                                 PreferenceManager.getDefaultSharedPreferences(context)
                                         .getString("charsetName", "UTF-8") : charsetName;
-                        Log.d(Tag, "charsetName:" + charsetName);
+//                        Log.d(Tag, "charsetName:" + charsetName);
                         htmlContent = new String(response.body().bytes(), charsetName);
-                        Log.d(Tag, "htmlContent:" + htmlContent);
+//                        Log.d(Tag, "htmlContent:" + htmlContent);
                     } else {
                         Log.d(Tag, "请求失败 没有返回值");
                         htmlContent = "0";
@@ -145,9 +145,9 @@ public class InfoGetter extends Service {
         if (htmlContent.contains(infoError) || htmlContent.equals("0")) {
             Log.d(Tag, "请求失败");
         } else {
-            Log.d(Tag, "开始匹配bookInfo");
+//            Log.d(Tag, "开始匹配bookInfo");
             String[] infoPage = platformItem.getInfoPage();
-            Log.d(Tag, "infoPage:" + Arrays.toString(infoPage));
+//            Log.d(Tag, "infoPage:" + Arrays.toString(infoPage));
             JSONObject infoFormatJson = null;
             try {
                 infoFormatJson = JSONObject.parseObject(platformItem.getInfoPageFormat());
@@ -157,7 +157,7 @@ public class InfoGetter extends Service {
                 JSONArray findList = infoFormatJson.getJSONArray("infoList");
                 Element infoAttr = Filter.switchActionToElement(findList, doc);
                 if (infoAttr != null) {
-                    Log.d(Tag, "infoAttr:" + infoAttr.html());
+//                    Log.d(Tag, "infoAttr:" + infoAttr.html());
                     bookItem = Filter.getBookItem(infoPage, infoFormatJson, infoAttr);
                 } else {
                     Map<String, String> map = Filter.switchActionToMap(findList, doc);
@@ -167,7 +167,6 @@ public class InfoGetter extends Service {
 
                 JSONArray synopsisStep = infoFormatJson.getJSONArray("synopsis");
                 String synopsis = Filter.getAttr(synopsisStep, doc.body());
-                Log.d(Tag, "简介：" + synopsis);
                 bookItem.setSynopsis(synopsis);
 
                 JSONArray coverUrlStep = infoFormatJson.getJSONArray("coverUrl");
@@ -175,7 +174,6 @@ public class InfoGetter extends Service {
                 if (coverUrlStep != null) {
                     coverUrl = Filter.getAttr(coverUrlStep, doc.body());
                     bookItem.setCoverUrl(coverUrl);
-                    Log.d(Tag, "封面图链接" + coverUrl);
                 }
             } catch (JSONException e) {
                 Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();

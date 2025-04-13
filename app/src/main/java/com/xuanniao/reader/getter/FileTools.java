@@ -22,11 +22,8 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class FileTools {
     private static final String Tag = "FileTools";
@@ -40,7 +37,7 @@ public class FileTools {
     public static boolean newBook(Context context, BookItem bookItem, CatalogItem catalogItem) {
         String catalogFileName = "0000目录.txt";
         try {
-            DocumentFile catalogFile = getDocumentFile(context, catalogItem.getBookName(), catalogFileName);
+            DocumentFile catalogFile = getDocumentFileC(context, catalogItem.getBookName(), catalogFileName);
             bookItem.setUriStr(String.valueOf(catalogFile.getUri()));
             OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
@@ -63,18 +60,23 @@ public class FileTools {
     }
 
     /**
-     * 写入详情
-     * @param context  上下文
-     * @param bookItem 书目
-     * @return
+     * 续存目录
+     * @param catalogItem 目录
+     * @return 创建结果
      */
-    public static boolean infoSave(Context context, BookItem bookItem) {
+    public static boolean catalogAppend(Context context, int start, CatalogItem catalogItem) {
         String catalogFileName = "0000目录.txt";
         try {
-            DocumentFile catalogFile = getDocumentFile(context, bookItem.getBookName(), catalogFileName);
-            OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
+            DocumentFile catalogFile = getDocumentFileC(context, catalogItem.getBookName(), catalogFileName);
+            OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri(), "wa");
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-            writeInfo(context, bookItem, writer);
+            List<String> chapterCodeList = catalogItem.getChapterCodeList();
+            List<String> chapterTitleList = catalogItem.getChapterTitleList();
+            for (int i = 0; i < chapterCodeList.size(); i++) {
+                writer.write(start + "/ /" + chapterTitleList.get(i)
+                        + "/ /" + chapterCodeList.get(i) + "\r\n");
+                start += 1;
+            }
             writer.close();
             out.close();
             return true;
@@ -85,22 +87,18 @@ public class FileTools {
     }
 
     /**
-     * 续写目录
-     * @param catalogItem 目录
-     * @return 创建结果
+     * 写入详情
+     * @param context  上下文
+     * @param bookItem 书目
+     * @return 是否写入成功
      */
-    public static boolean appendCatalog(Context context, CatalogItem catalogItem) {
+    public static boolean infoSave(Context context, BookItem bookItem) {
         String catalogFileName = "0000目录.txt";
         try {
-            DocumentFile catalogFile = getDocumentFile(context, catalogItem.getBookName(), catalogFileName);
-            OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri(), "wa");
+            DocumentFile catalogFile = getDocumentFileC(context, bookItem.getBookName(), catalogFileName);
+            OutputStream out = context.getContentResolver().openOutputStream(catalogFile.getUri());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-            List<String> chapterCodeList = catalogItem.getChapterCodeList();
-            List<String> chapterTitleList = catalogItem.getChapterTitleList();
-            for (int i = 0; i < chapterCodeList.size(); i++) {
-                writer.write((i + 1) + "/ /" + chapterTitleList.get(i)
-                        + "/ /" + chapterCodeList.get(i) + "\r\n");
-            }
+            writeInfo(context, bookItem, writer);
             writer.close();
             out.close();
             return true;
@@ -130,31 +128,43 @@ public class FileTools {
     /**
      * 存储章节
      * @param context 上下文
-     * @param chapterItem 章节
+     * @param item 章节
      * @return 存储结果
      */
-    public static int chapterSave(Context context, ChapterItem chapterItem) {
-        String formatNum = figuresNum(chapterItem.getBookName(), chapterItem.getChapterNum());
+    public static int saveChapter(Context context, ChapterItem item, int start) {
+        String formatNum = figuresNum(item.getBookName(), item.getChapterNum());
         if (formatNum.equals("-1") || formatNum.equals("-2")) {
             return Integer.parseInt(formatNum);
         }
         int emptyNum = 0;
-        for (String s : chapterItem.getChapter()) {
+        for (String s : item.getChapter()) {
             if (s.trim().isEmpty()) {
                 emptyNum += 1;
             }
         }
-        Log.d(Tag, "emptyNum:" + emptyNum + " | size:" + chapterItem.getChapter().size());
-        if (emptyNum == chapterItem.getChapter().size()) {
+        Log.d(Tag, "emptyNum:" + emptyNum + " | size:" + item.getChapter().size());
+        if (emptyNum == item.getChapter().size()) {
             return Integer.parseInt(formatNum);
         }
-        String chapterFileName = formatNum + chapterItem.getTitle() + ".txt";
+        String chapterFileName = formatNum + item.getTitle() + ".txt";
         try {
-            DocumentFile chapterFile = getDocumentFile(context, chapterItem.getBookName(), chapterFileName);
+            DocumentFile chapterFile = getDocumentFileC(context,
+                    item.getBookName(), chapterFileName);
             if (chapterFile == null) return -2;
-            OutputStream out = context.getContentResolver().openOutputStream(chapterFile.getUri());
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-            for (String s : chapterItem.getChapter()) {
+            ContentResolver cr = context.getContentResolver();
+            OutputStream out;
+            if (start == 0) {
+                out = cr.openOutputStream(chapterFile.getUri());
+            } else if (start > 0) {
+                out = cr.openOutputStream(chapterFile.getUri(), "wa");
+            } else {
+                return -3;
+            }
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(out, StandardCharsets.UTF_8));
+            List<String> paragraphList = item.getChapter();
+            for (int i = 0; i < paragraphList.size(); i++) {
+                String s = item.getChapter().get(i);
                 writer.write(s + "\r\n");
             }
             writer.close();
@@ -279,7 +289,7 @@ public class FileTools {
         catalogItem.setBookName(bookName);
         String catalogFileName = "0000目录.txt";
         try {
-            DocumentFile catalogFile = getDocumentFile(context, bookName, catalogFileName);
+            DocumentFile catalogFile = getDocumentFileC(context, bookName, catalogFileName);
             InputStream ins = context.getContentResolver().openInputStream(catalogFile.getUri());
             BufferedReader br = new BufferedReader(new InputStreamReader(ins));
             String line;
@@ -320,9 +330,9 @@ public class FileTools {
             return chapterItem;
         }
         String chapterFileName = formatNum + chapterTitle + ".txt";
-        chapterItem.setIsLocal(1);
+        chapterItem.setIsLocal(true);
         try {
-            DocumentFile chapterFile = getDocumentFile(context, bookName, chapterFileName);
+            DocumentFile chapterFile = getDocumentFileC(context, bookName, chapterFileName);
             InputStream ins = context.getContentResolver().openInputStream(chapterFile.getUri());
             BufferedReader br = new BufferedReader(new InputStreamReader(ins));
             String line;
@@ -416,7 +426,14 @@ public class FileTools {
         return false;
     }
 
-    static DocumentFile getDocumentFile(Context context, String bookName, String fileName) {
+    /**
+     * 获取文件 没有的进行创建
+     * @param context 上下文
+     * @param bookName 书目
+     * @param fileName 文件名
+     * @return document文件
+     */
+    static DocumentFile getDocumentFileC(Context context, String bookName, String fileName) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         String uriString = sp.getString("file_authorize", "");
         if (uriString.isEmpty()) return null;
@@ -435,6 +452,27 @@ public class FileTools {
                     bookDir.createFile("text/plain", fileName);
             if (file != null) Log.d(Tag, "文件创建成功");
         }
+        return file;
+    }
+
+    /**
+     * 获取文件 没有的不创建
+     * @param context 上下文
+     * @param bookName 书目
+     * @param fileName 文件名
+     * @return document文件
+     */
+    static DocumentFile getDocumentFileN(Context context, String bookName, String fileName) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        String uriString = sp.getString("file_authorize", "");
+        if (uriString.isEmpty()) return null;
+        Uri topUri = Uri.parse(uriString);
+        DocumentFile topDir = DocumentFile.fromTreeUri(context, topUri);
+        if (topDir == null || !topDir.exists()) return null;
+        DocumentFile bookDir = topDir.findFile(bookName);
+        if (bookDir == null || !bookDir.isDirectory()) return null;
+        DocumentFile file = bookDir.findFile(fileName);
+        if (file == null || !file.isFile()) return null;
         return file;
     }
 }

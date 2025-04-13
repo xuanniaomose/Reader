@@ -11,6 +11,7 @@ public class CatalogItem implements Parcelable {
     String platformName;
     String bookName;
     String bookCode;
+    List<String> catalogPageCodeList;
     List<String> chapterCodeList;
     List<String> chapterTitleList;
 
@@ -27,12 +28,23 @@ public class CatalogItem implements Parcelable {
         this.bookCode = bookCode;
     }
 
+    public void setCatalogPageCodeList(List<String> catalogPageCodeList) {
+        this.catalogPageCodeList = catalogPageCodeList;
+    }
+
     public void setChapterCodeList(List<String> chapterCodeList) {
         this.chapterCodeList = chapterCodeList;
     }
 
     public void setChapterTitleList(List<String> chapterTitleList) {
         this.chapterTitleList = chapterTitleList;
+    }
+
+    public void addCatalogPageCode(String catalogCode) {
+        if (catalogPageCodeList == null) {
+            catalogPageCodeList = new ArrayList<>();
+        }
+        this.catalogPageCodeList.add(catalogCode);
     }
 
     public void addChapterCode(String chapterCode) {
@@ -75,6 +87,13 @@ public class CatalogItem implements Parcelable {
 
     public String getBookCode() {
         return bookCode;
+    }
+
+    public List<String> getCatalogPageCodeList() {
+        if (catalogPageCodeList == null) {
+            this.catalogPageCodeList = new ArrayList<>();
+        }
+        return catalogPageCodeList;
     }
 
     public List<String> getChapterCodeList() {

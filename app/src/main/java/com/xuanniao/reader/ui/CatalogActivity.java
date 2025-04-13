@@ -30,6 +30,7 @@ public class CatalogActivity extends AppCompatActivity {
     CatalogAdapter catalogAdapter;
     BookDB bdb;
     public static Handler handler_catalog;
+    List<String> catalogPageCodeList;
     CatalogItem catalogItem;
     BookItem bookItem;
     String bookName, bookCode;
@@ -68,10 +69,10 @@ public class CatalogActivity extends AppCompatActivity {
         if (bookName != null && !bookName.isEmpty()) {
             tv_bookName.setText(bookName);
         }
-        Log.d(Tag, "intentGet.isLocal:" + isLocal);
-        Log.d(Tag, "intentGet.bookName:" + bookName);
-        Log.d(Tag, "intentGet.bookCode:" + bookCode);
-        Log.d(Tag, "intentGet.platformID:" + platformID);
+//        Log.d(Tag, "intentGet.isLocal:" + isLocal);
+//        Log.d(Tag, "intentGet.bookName:" + bookName);
+//        Log.d(Tag, "intentGet.bookCode:" + bookCode);
+//        Log.d(Tag, "intentGet.platformID:" + platformID);
         lv_catalog = findViewById(R.id.lv_catalog);
         handler_catalog = setCatalogHandler();
         if (bookName != null) {
@@ -104,20 +105,44 @@ public class CatalogActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == 1) {
-                    if (msg.arg2 > 200) {
+                    if (msg.arg2 > 0) {
                         // 是分好几页显示的目录
                         int part = msg.arg2 / 100;
                         int total = msg.arg2 % 100;
                         Log.d(Tag, "part:" + part + " | total:" + total);
-                        CatalogItem item = (CatalogItem) msg.obj;
-                        List<String> titleList = item.getChapterTitleList();
-                        List<String> codeList = item.getChapterCodeList();
-                        catalogItem.appendTitleList(titleList);
-                        catalogItem.appendCodeList(codeList);
-                        setCatalog(catalogItem);
-                        FileTools.appendCatalog(CatalogActivity.this, catalogItem);
+                        if (part == 1) {
+                            catalogItem = (CatalogItem) msg.obj;
+                            setCatalog(catalogItem);
+                            FileTools.newBook(CatalogActivity.this, bookItem, catalogItem);
+                        } else {
+                            int start = catalogItem.getChapterCodeList().size();
+                            CatalogItem item = (CatalogItem) msg.obj;
+                            List<String> titleList = item.getChapterTitleList();
+                            List<String> codeList = item.getChapterCodeList();
+                            catalogItem.appendTitleList(titleList);
+                            Log.d(Tag, "part titleList:" + titleList.get(0));
+                            catalogItem.appendCodeList(codeList);
+                            setCatalog(catalogItem);
+                            boolean b = FileTools.catalogAppend(CatalogActivity.this, start, item);
+                            Log.d(Tag, "目录追加:" + b);
+                        }
+                        if (part < total) {
+                            if (catalogPageCodeList == null)
+                                catalogPageCodeList = catalogItem.getCatalogPageCodeList();
+                            String pageCode = catalogPageCodeList.get(part);
+                            Log.d(Tag, "nextPart:" + (part + 1) + " | pageCode:" + pageCode);
+                            Intent intent = new Intent(CatalogActivity.this, CatalogGetter.class);
+                            intent.putExtra("isLocal", isLocal);
+                            intent.putExtra("platformID", platformID);
+                            intent.putExtra("bookItem", bookItem);
+                            intent.putExtra("part", (part + 1) * 100 + total);
+                            intent.putExtra("pageCode", pageCode);
+                            startService(intent);
+                        }
                     } else {
                         catalogItem = (CatalogItem) msg.obj;
+                        setCatalog(catalogItem);
+                        Log.d(Tag, "新建书目");
                         FileTools.newBook(CatalogActivity.this, bookItem, catalogItem);
                     }
                 } else if (msg.what == 2) {

@@ -52,6 +52,8 @@ public class ChapterGetter extends Service {
             int chapterNum = intent.getIntExtra("chapterNum", -1);
             String chapterCode = intent.getStringExtra("chapterCode");
             String chapterTitle = intent.getStringExtra("chapterTitle");
+            int part = intent.getIntExtra("part", 0);
+            String pageCode = intent.getStringExtra("pageCode");
             Log.d(Tag, "bookCode:" + bookCode + " chapterCode:" + chapterCode);
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
@@ -60,20 +62,26 @@ public class ChapterGetter extends Service {
             if (isLocal) {
                 ChapterItem chapterItem = FileTools.loadLocalChapter(
                         this, bookName, chapterNum, chapterTitle);
-                sendMessage(1, isManual, chapterItem);
+                sendMessage(isManual, chapterItem, 0);
             } else {
                 ChapterItem chapterItem = new ChapterItem();
                 chapterItem.setBookName(bookName);
+                chapterItem.setBookCode(bookCode);
                 chapterItem.setTitle(chapterTitle);
                 chapterItem.setChapterNum(chapterNum);
                 chapterItem.setChapterCode(chapterCode);
-                if (platformID != -1) {
+                Log.d(Tag, "chapterNum:" + chapterNum + " | chapterCode:" + chapterCode);
+                if (platformID == -1) {
                     PlatformItem platformItem = platformList.get(platformID);
-                    Log.d(Tag, "chapterNum:" + chapterNum + " | chapterCode:" + chapterCode);
-                    getHtml(this, isManual, platformItem, bookCode, chapterCode, chapterItem);
+                    if (pageCode == null) {
+                        getHtml(this, isManual, platformItem, chapterItem);
+                    } else {
+                        getPartPageHtml(this, isManual, platformItem,
+                                chapterItem, pageCode, part);
+                    }
                 } else {
                     for (PlatformItem platformItem : platformList) {
-                        getHtml(this, isManual, platformItem, bookCode, chapterCode, chapterItem);
+                        getHtml(this, isManual, platformItem, chapterItem);
                     }
                 }
             }
@@ -87,19 +95,13 @@ public class ChapterGetter extends Service {
      * @param context 上下文
      * @param isManual 是否手动
      * @param platformItem 平台
-     * @param bookCode 书籍编号
-     * @param chapterCode 章节编号
      * @param chapterItem 输入的章节
      */
-    private void getHtml(Context context, boolean isManual, PlatformItem platformItem,
-                         String bookCode, String chapterCode, ChapterItem chapterItem) {
-        String url = platformItem.getPlatformUrl() + bookCode + "/" + chapterCode + ".html";
+    private void getHtml(Context context, boolean isManual, PlatformItem platformItem, ChapterItem chapterItem) {
+        String url = platformItem.getPlatformUrl() + chapterItem.getBookCode()
+                + "/" + chapterItem.getChapterCode() + ".html";
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
-        if (cookie.contains("timeLong")) {
-            String timeLong = String.valueOf(System.currentTimeMillis());
-            cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
-        }
         Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
                 .url(url)
@@ -112,14 +114,15 @@ public class ChapterGetter extends Service {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                String htmlContent = "0";
                 Log.d(Tag, "请求失败onFailure");
-                ChapterItem item = htmlToChapter(platformItem, htmlContent, chapterItem);
-                sendMessage(platformItem.getID(), isManual, item);
+                sendMessage(isManual, chapterItem, 0);
             }
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                String htmlContent;
+                String htmlContent = responseToContent(context, response.body(),
+                        platformItem.getCharsetName(), platformItem.getChapterError());
+                htmlToChapter(isManual, platformItem, htmlContent, chapterItem, 0);
+
                 try {
                     if (response.body() != null) {
                         Log.d(Tag, "请求成功");
@@ -134,11 +137,10 @@ public class ChapterGetter extends Service {
                         Log.d(Tag, "请求失败 没有返回值");
                         htmlContent = "0";
                     }
-                    ChapterItem item = htmlToChapter(platformItem, htmlContent, chapterItem);
-                    sendMessage(platformItem.getID(), isManual, item);
+                    htmlToChapter(isManual, platformItem, htmlContent, chapterItem, 0);
                 } catch (IOException e) {
                     Log.e(Tag, "e:" + e.getMessage());
-                    sendMessage(platformItem.getID(), isManual, chapterItem);
+                    sendMessage(isManual, chapterItem, 0);
                 }
             }
         });
@@ -150,74 +152,164 @@ public class ChapterGetter extends Service {
      * @param chapterItem 输入的章节
      * @return 处理完输出的章节
      */
-    private ChapterItem htmlToChapter(PlatformItem platformItem, String htmlContent, ChapterItem chapterItem) {
-        Log.d(Tag, "htmlContent:" + htmlContent);
-        String chapterError = platformItem.getChapterError();
-        if (htmlContent.contains(chapterError) || htmlContent.equals("0")) {
-            return chapterItem;
-        } else {
-            Log.d(Tag, "开始匹配ChapterList");
-            if (htmlContent != null) {
-                String[] chapterPage = platformItem.getChapterPage();
-//                Log.d(Tag, "chapterPage:" + Arrays.toString(chapterPage));
-                JSONObject chapterFormatJson = null;
-                try {
-                    chapterFormatJson = JSONObject.parseObject(platformItem.getChapterPageFormat());
-                    if (chapterFormatJson == null) return chapterItem;
-                    Document doc = Jsoup.parseBodyFragment(htmlContent);
-                    JSONArray titleStep = chapterFormatJson.getJSONArray("title");
-                    String title = Filter.getAttr(titleStep, doc.body());
-                    if (title == null) return chapterItem;
-                    chapterItem.setTitle(title);
-                    JSONArray findList = chapterFormatJson.getJSONArray("paragraphList");
-                    if (Arrays.asList(chapterPage).contains("paragraph")) {
-                        Elements chapterAttrs = Filter.switchActionToElements(findList, doc);
-                        if (chapterAttrs == null) return chapterItem;
-                        JSONArray paragraphStep = chapterFormatJson.getJSONArray("paragraph");
-                        for (Element chapterAttr : chapterAttrs) {
-                            String paragraph = Filter.getAttr(paragraphStep, chapterAttr);
-                            chapterItem.addParagraph(paragraph);
-                        }
-                    } else {
-                        String[] paragraphArray = Filter.switchActionToParagraphArray(findList, doc);
-                        if (paragraphArray == null) return chapterItem;
-                        for (String chapterAttr : paragraphArray) {
-                            if (Objects.equals(chapterAttr.trim(), "")) continue;
-                            if (Objects.equals(chapterAttr.trim(), "<script>chaptererror();</script>")) continue;
-                            if (chapterAttr.trim().contains("请记住本书首发域名")) continue;
-                            if (chapterAttr.trim().contains("<!--")) continue;
-                            chapterItem.addParagraph(chapterAttr.trim());
-                        }
-                    }
-                } catch (JSONException e) {
-                    Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
-                    return chapterItem;
+    private void htmlToChapter(boolean isManual, PlatformItem platformItem, String htmlContent,
+                               ChapterItem chapterItem, int part) {
+//        Log.d(Tag, "htmlContent:" + htmlContent);
+        Log.d(Tag, "开始匹配ChapterList");
+        String[] chapterPage = platformItem.getChapterPage();
+//        Log.d(Tag, "chapterPage:" + Arrays.toString(chapterPage));
+        JSONObject chapterFormatJson = null;
+        try {
+            chapterFormatJson = JSONObject.parseObject(platformItem.getChapterPageFormat());
+            if (chapterFormatJson == null) return;
+
+            Document doc = Jsoup.parseBodyFragment(htmlContent);
+            JSONArray titleStep = chapterFormatJson.getJSONArray("title");
+            String title = Filter.getAttr(titleStep, doc.body());
+            if (title == null) return;
+            chapterItem.setTitle(title);
+            JSONArray findPage = chapterFormatJson.getJSONArray("chapterPartPage");
+            if (part == 0 && findPage != null) {
+                Elements chapterPages = Filter.switchActionToElements(findPage, doc);
+                if (chapterPages == null) return;
+                JSONArray pageCodeStep = chapterFormatJson.getJSONArray("chapterPageCode");
+                JSONArray pageNameStep = chapterFormatJson.getJSONArray("chapterPageName");
+                int total = chapterPages.size();
+                Log.d(Tag, "chapterPages: " + chapterPages);
+                for (int i = 0; i < total; i++) {
+                    Element pageAttr = chapterPages.get(i);
+                    String pageCode = Filter.getAttr(pageCodeStep, pageAttr);
+                    String pageName = Filter.getAttr(pageNameStep, pageAttr);
+                    chapterItem.addChapterPageCode(pageCode);
                 }
-                Log.d(Tag, "结束匹配ChapterList");
+                part = (part + 1) * 100 + total;
             }
+            JSONArray pageIndex = chapterFormatJson.getJSONArray("chapterPartPageIndex");
+            if (part == 0 && pageIndex != null) {
+                String chapterPath = platformItem.getChapterPath();
+                boolean haveHtml = chapterPath.contains(".html");
+                if (haveHtml) chapterPath = chapterPath.replace(".html", "");
+                chapterPath = chapterPath.replaceAll("[0-9]", "");
+                int total = pageIndex.size();
+                for (int i = 0; i < total; i++) {
+                    int index = (int) pageIndex.get(i);
+                    String pageCode = (haveHtml)? chapterPath + index + ".html" :
+                            chapterPath + index;
+                    chapterItem.addChapterPageCode(pageCode);
+                }
+                part = (part + 1) * 100 + total;
+            }
+            boolean containP = Arrays.asList(chapterPage).contains("paragraph");
+            chapterItem = getChapterItem(chapterFormatJson, containP, doc, chapterItem);
+        } catch (JSONException e) {
+            Toast.makeText(this, "json数据格式错误，请核对后重新加载", Toast.LENGTH_SHORT).show();
+            return;
         }
-        return chapterItem;
+        Log.d(Tag, "结束匹配ChapterList");
+        sendMessage(isManual, chapterItem, part);
     }
 
-    private void sendMessage(int platformID, boolean isManual, ChapterItem chapterItem) {
+    private static ChapterItem getChapterItem(JSONObject fJson, boolean containP, Document doc, ChapterItem item){
+        JSONArray findList = fJson.getJSONArray("paragraphList");
+        if (containP) {
+            Elements chapterAttrs = Filter.switchActionToElements(findList, doc);
+            if (chapterAttrs == null) return item;
+            JSONArray paragraphStep = fJson.getJSONArray("paragraph");
+            for (Element chapterAttr : chapterAttrs) {
+                String paragraph = Filter.getAttr(paragraphStep, chapterAttr);
+                item.addParagraph(paragraph);
+            }
+        } else {
+            String[] paragraphArray = Filter.switchActionToParagraphArray(findList, doc);
+            if (paragraphArray == null) return item;
+            for (String chapterAttr : paragraphArray) {
+                if (Objects.equals(chapterAttr.trim(), "")) continue;
+                if (Objects.equals(chapterAttr.trim(), "<script>chaptererror();</script>")) continue;
+                if (chapterAttr.trim().contains("请记住本书首发域名")) continue;
+                if (chapterAttr.trim().contains("<!--")) continue;
+                item.addParagraph(chapterAttr.trim());
+            }
+        }
+        return item;
+    }
+
+    void getPartPageHtml(Context context, boolean isManual, PlatformItem platformItem,
+                         ChapterItem chapterItem, String pageCode, int part) {
+        String strUrl = platformItem.getPlatformUrl() + chapterItem.getChapterCode()
+                + "/" + pageCode;
+        Log.d("url", strUrl);
+        String cookie = platformItem.getPlatformCookie();
+//        Log.d(Tag, "Cookie:" + cookie);
+        Request request = new Request.Builder()
+                .url(strUrl)
+                .headers(Filter.setHeaders(cookie))
+                .build();
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(12, TimeUnit.SECONDS)
+                .build();
+        Call call = okHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d(Tag, "请求失败onFailure");
+                sendMessage(isManual, chapterItem, 0);
+            }
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                String htmlContent = responseToContent(context, response.body(),
+                        platformItem.getCharsetName(), platformItem.getCatalogError());
+                htmlToChapter(isManual, platformItem, htmlContent, chapterItem, part);
+            }
+        });
+    }
+
+    private String responseToContent(Context context, okhttp3.ResponseBody responseBody,
+                                     String charsetName, String catalogError) {
+        String htmlContent;
+        try {
+            if (responseBody != null) {
+                Log.d(Tag, "请求成功");
+                if (charsetName == null || charsetName.isEmpty()) {
+                    charsetName = PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString("charsetName", "UTF-8");
+                }
+//                Log.d(Tag, "charsetName:" + charsetName);
+                htmlContent = new String(responseBody.bytes(), charsetName);
+//                Log.d(Tag, "htmlContent:" + htmlContent);
+            } else {
+                Log.d(Tag, "请求失败 没有返回值");
+                htmlContent = "0";
+            }
+            if (htmlContent.contains(catalogError)) {
+                Log.d(Tag, "请求失败");
+                htmlContent = "0";
+            }
+        } catch (IOException e) {
+//            throw new RuntimeException(e);
+            htmlContent = "0";
+        }
+        return htmlContent;
+    }
+
+    private void sendMessage(boolean isManual, ChapterItem chapterItem, int part) {
         Message msg = new Message();
         Log.d(Tag, "解读出来是段落列表");
         if (chapterItem.getChapter() == null || chapterItem.getChapter().isEmpty()) {
-            if (chapterItem.getIsLocal() == 1) {
+            if (chapterItem.getIsLocal()) {
                 // 本地没有
                 msg.what = 3;
-                msg.arg1 = platformID;
-                msg.arg2 = (isManual)? 1 : 0;
+                msg.arg1 = (isManual)? 1 : 0;
+                msg.arg2 = part;
                 msg.obj = chapterItem;
             } else {
                 // 网络错误
                 msg.what = 2;
-                msg.arg2 = (isManual)? 1 : 0;
+                msg.arg1 = (isManual)? 1 : 0;
             }
         } else {
             msg.what = 1;
-            msg.arg1 = platformID;
-            msg.arg2 = (isManual)? 1 : 0;
+            msg.arg1 = (isManual)? 1 : 0;
+            msg.arg2 = part;
             msg.obj = chapterItem;
         }
         ChapterActivity.handler_paragraph.sendMessage(msg);

@@ -31,13 +31,15 @@ public class Filter {
         Headers.Builder headersbuilder = new Headers.Builder();
         headersbuilder.add("User-Agent", userAgent);
         headersbuilder.add("Accept", accept);
+        headersbuilder.add("sec-ch-ua-mobile", "?0");
+        headersbuilder.add("sec-ch-ua-platform", "Windows");
         String[] kva = cookie.split("; ");
         for (String kvs : kva) {
             String[] kv = kvs.split("=");
-            Log.d(Tag, kv[0] + ":" + kv[1]);
+//            Log.d(Tag, kv[0] + ":" + kv[1]);
             headersbuilder.add(kv[0], kv[1]);
         }headers = headersbuilder.build();
-        Log.d(Tag, String.valueOf(headers));
+//        Log.d(Tag, String.valueOf(headers));
         return headers;
     }
 
@@ -93,8 +95,8 @@ public class Filter {
 
     static BookItem getBookItemByMap(String[] attrArray, JSONObject pageJson, Map<String, String> map) {
         BookItem bookItem = new BookItem();
-        Log.d(Tag, "attrArray:" + Arrays.toString(attrArray));
-        Log.d(Tag, "pageJson:" + pageJson);
+//        Log.d(Tag, "attrArray:" + Arrays.toString(attrArray));
+//        Log.d(Tag, "pageJson:" + pageJson);
         for (int i = 1; i < attrArray.length; i++) {
             String attr = attrArray[i];
             String attrValue = null;
@@ -176,32 +178,32 @@ public class Filter {
         Elements elements = null;
 //        Log.d(Tag, "actionArray.length():" + actionArray.size());
         for (int i = 0; i < actionArray.size(); i++) {
-            Log.d(Tag, "i:" + i);
+//            Log.d(Tag, "i:" + i);
             try {
                 JSONObject actionStep = actionArray.getJSONObject(i);
                 String action = actionStep.getString("action");
-                Log.d(Tag, "action:" + action);
+//                Log.d(Tag, "action:" + action);
                 if (!Objects.equals(action, "select")) return null;
 
                 String selectBy = actionStep.getString("by");
-                Log.d(Tag, "selectBy:" + selectBy);
+//                Log.d(Tag, "selectBy:" + selectBy);
                 String selectGet = actionStep.getString("get");
-                Log.d(Tag, "selectGet:" + selectGet);
+//                Log.d(Tag, "selectGet:" + selectGet);
 
                 if (selectBy != null && i == 0) {
                     elements = doc.select(selectBy);
-                    Log.d(Tag, "i=0 elements:" + elements.html());
+//                    Log.d(Tag, "i=0 elements:" + elements.html());
                 } else if (selectBy != null && i > 0 && el != null) {
                     elements = el.select(selectBy);
-                    Log.d(Tag, "i>0 elements:" + elements.html());
+//                    Log.d(Tag, "i>0 elements:" + elements.html());
                 }
                 if (elements != null && selectGet != null) {
                     el = elements.get(Integer.parseInt(selectGet));
-                    Log.d(Tag, "el:" + el.html());
+//                    Log.d(Tag, "el:" + el.html());
                 }
                 if (i == actionArray.size() - 1) {
                     if (el != null) {
-                        Log.d(Tag, "i=max element:" + el.html());
+//                        Log.d(Tag, "i=max element:" + el.html());
                         return el;
                     }
                 }
@@ -237,17 +239,17 @@ public class Filter {
 //                            Log.d(Tag, "i=0 elements:" + elements.html());
                         } else if (selectBy != null && i > 0 && el != null) {
                             elements = el.select(selectBy);
-                            Log.d(Tag, "i>0 elements:" + elements.html());
+//                            Log.d(Tag, "i>0 elements:" + elements.html());
                         }
                         if (elements != null && selectGet != null) {
                             el = elements.get(Integer.parseInt(selectGet));
-                            Log.d(Tag, "el:" + el.html());
+//                            Log.d(Tag, "el:" + el.html());
                         }
                         break;
                     case "elementGetVar":
                         int getNum = Integer.parseInt(actionStep.getString("get"));
                         if (el != null) {
-                            Log.d(Tag, "el:" + el.html());
+//                            Log.d(Tag, "el:" + el.html());
                             str = el.data().toString().split("var")[getNum];
                         }
                         break;

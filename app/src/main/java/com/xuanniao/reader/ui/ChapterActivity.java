@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.preference.PreferenceManager;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.ChapterGetter;
+import com.xuanniao.reader.getter.FileTools;
 import com.xuanniao.reader.item.BookDB;
 import com.xuanniao.reader.item.BookItem;
 import com.xuanniao.reader.item.ChapterItem;
@@ -36,6 +37,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
             btn_exit, btn_rewind, btn_pause, btn_forward, btn_reader;
     public static Handler handler_paragraph, handler_ttsOK;
     static List<String> paragraphList;
+    List<String> chapterPageCodeList;
     ArrayList<String> chapterCodeList;
     ArrayList<String> chapterTitleList;
     ChapterAdapter chapterAdapter;
@@ -75,7 +77,6 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         chapterNum = intent.getIntExtra("chapterNum", -1);
         chapterTitle = intent.getStringExtra("chapterTitle");
         //TODO: 以下两表建议查db获取，以优化性能
-//        BookDB bdb = BookDB.getInstance(this, Constants.DB_BOOK);
         chapterCodeList = intent.getStringArrayListExtra("chapterCodeList");
         chapterTitleList = intent.getStringArrayListExtra("chapterTitleList");
         bdb = BookDB.getInstance(ChapterActivity.this, Constants.DB_BOOK);
@@ -313,10 +314,47 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         return new Handler(Looper.myLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                boolean isManual = (msg.arg2 == 1)? true : false;
+                boolean isManual = (msg.arg1 == 1)? true : false;
                 if (msg.what == 1) {
-                    ChapterItem chapterItem = (ChapterItem) msg.obj;
-                    if (!chapterItem.getChapter().isEmpty()) setChapter(chapterItem, isManual);
+                    ChapterItem item = (ChapterItem) msg.obj;
+                    setChapter(item, isManual);
+                    if (msg.arg2 > 0) {
+                        // 是分好几页显示的目录
+                        int part = msg.arg2 / 100;
+                        int total = msg.arg2 % 100;
+                        Log.d(Tag, "part:" + part + " | total:" + total);
+                        if (part == 1) {
+                            FileTools.saveChapter(ChapterActivity.this, item, 0);
+                        } else {
+                            int start = paragraphList.size();
+                            List<String> paragraphList = item.getChapter();
+                            Log.d(Tag, "part paragraphList:" + paragraphList.get(0));
+                            paragraphList.addAll(paragraphList);
+                            int i = FileTools.saveChapter(ChapterActivity.this, item, start);
+                            Log.d(Tag, "目录追加:" + i);
+                        }
+                        if (part < total) {
+                            if (chapterPageCodeList == null)
+                                chapterPageCodeList = item.getChapterPageCodeList();
+                            String pageCode = chapterPageCodeList.get(part);
+                            Log.d(Tag, "nextPart:" + (part + 1) + " | pageCode:" + pageCode);
+                            Intent intent = new Intent(ChapterActivity.this, ChapterGetter.class);
+                            intent.putExtra("isLocal", isLocal);
+                            intent.putExtra("isManual", true);
+                            intent.putExtra("platformID", platformID);
+                            intent.putExtra("bookName", bookName);
+                            intent.putExtra("bookCode", bookCode);
+                            intent.putExtra("chapterNum", chapterNum);
+                            intent.putExtra("chapterCode", chapterCode);
+                            intent.putExtra("chapterTitle", chapterTitle);
+                            intent.putExtra("part", (part + 1) * 100 + total);
+                            intent.putExtra("pageCode", pageCode);
+                            startService(intent);
+                        }
+                    } else {
+                        Log.d(Tag, "新建书目");
+                        FileTools.saveChapter(ChapterActivity.this, item, 0);
+                    }
                 } else if (msg.what == 2) {
                     Toast.makeText(ChapterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
                 } else if (msg.what == 3) {
@@ -333,6 +371,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
     }
 
     private void setChapter(ChapterItem chapterItem, boolean isManual) {
+        isLocal = chapterItem.getIsLocal();
         String title = chapterItem.getTitle();
         if (title != null && !title.isEmpty() && !Objects.equals(chapterTitle, title)) {
             chapterTitle = title;

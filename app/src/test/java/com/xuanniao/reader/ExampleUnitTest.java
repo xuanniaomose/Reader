@@ -21,9 +21,9 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void test() {
-        int part = 0 * 100 + 5;
-        int a = part / 100;
-        System.out.println(a);
+        String catalogPath = "index_1.html";
+        boolean haveHtml = catalogPath.contains(".html");
+        System.out.println("find:" + haveHtml);
     }
 
     @Test
@@ -62,4 +62,5 @@ public class ExampleUnitTest {
         string.delete(string.length() - 1, string.length());
         return string.toString();
     }
+
 }
