@@ -87,11 +87,6 @@ public class InfoGetter extends Service {
         String url = platformItem.getPlatformUrl() + bookCode + "/" + platformItem.getInfoPath();
 //        Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
-        if (cookie.contains("timeLong")) {
-            String timeLong = String.valueOf(System.currentTimeMillis());
-            cookie = cookie.replaceAll("timeLong", timeLong.substring(0, 10));
-        }
-//        Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
                 .url(url)
                 .headers(Filter.setHeaders(cookie))
@@ -128,7 +123,7 @@ public class InfoGetter extends Service {
                     BookItem bookItem = htmlToBookInfo(platformItem, htmlContent);
                     bookItem.setBookCode(bookCode);
                     sendMessage(platformItem.getID(), num, bookItem, isLocal);
-                    if (isCreate) FileTools.infoSave(context, bookItem);
+                    if (isCreate) FileTools.infoSave(context, bookItem, cookie);
                 } catch (IOException e) {
 //                    throw new RuntimeException(e);
                     Log.e(Tag, "e:" + e.getMessage());
@@ -156,8 +151,8 @@ public class InfoGetter extends Service {
 
                 JSONArray findList = infoFormatJson.getJSONArray("infoList");
                 Element infoAttr = Filter.switchActionToElement(findList, doc);
+                Log.d(Tag, "infoAttr:" + (infoAttr != null));
                 if (infoAttr != null) {
-//                    Log.d(Tag, "infoAttr:" + infoAttr.html());
                     bookItem = Filter.getBookItem(infoPage, infoFormatJson, infoAttr);
                 } else {
                     Map<String, String> map = Filter.switchActionToMap(findList, doc);
@@ -170,9 +165,8 @@ public class InfoGetter extends Service {
                 bookItem.setSynopsis(synopsis);
 
                 JSONArray coverUrlStep = infoFormatJson.getJSONArray("coverUrl");
-                String coverUrl;
                 if (coverUrlStep != null) {
-                    coverUrl = Filter.getAttr(coverUrlStep, doc.body());
+                    String coverUrl = Filter.getAttr(coverUrlStep, doc.body());
                     bookItem.setCoverUrl(coverUrl);
                 }
             } catch (JSONException e) {

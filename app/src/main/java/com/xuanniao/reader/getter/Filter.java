@@ -178,7 +178,7 @@ public class Filter {
         Elements elements = null;
 //        Log.d(Tag, "actionArray.length():" + actionArray.size());
         for (int i = 0; i < actionArray.size(); i++) {
-//            Log.d(Tag, "i:" + i);
+            Log.d(Tag, "i:" + i);
             try {
                 JSONObject actionStep = actionArray.getJSONObject(i);
                 String action = actionStep.getString("action");
@@ -289,11 +289,15 @@ public class Filter {
                     case "select":
                         String selectBy = step.getString("by");
                         String selectGet = step.getString("get");
+//                        Log.d(Tag, "selectBy:" + selectBy + " get:" + selectGet);
                         if (selectBy != null) {
-                            elements = htmlListItem.select(selectBy);
+                            elements = (element == null)?
+                                    htmlListItem.select(selectBy) : element.select(selectBy);
+//                            Log.d(Tag, "elements:" + elements);
                         }
                         if (elements != null && !elements.isEmpty() && selectGet != null) {
                             element = elements.get(Integer.parseInt(selectGet));
+//                            Log.d(Tag, "element:" + element);
                         }
                         break;
                     case "attr":
@@ -304,6 +308,7 @@ public class Filter {
                             } else {
                                 str = element.attr(attrBy);
                             }
+//                            Log.d(Tag, "通过属性筛选到:" + str);
                         }
                         break;
                     case "i":
@@ -318,6 +323,7 @@ public class Filter {
                         } else {
                             str = element.html();
                         }
+//                        Log.d(Tag, "标签内的内容:" + str);
                         break;
                     case "replace":
                         String target = step.getString("target");
@@ -325,6 +331,7 @@ public class Filter {
                         if (target != null && to != null && str != null) {
                             str = str.replace(target, to);
                         }
+//                        Log.d(Tag, "替换后:" + str);
                         break;
                     case "replaceAll":
                         String targetA = step.getString("target");
@@ -332,9 +339,11 @@ public class Filter {
                         if (targetA != null && toA != null && str != null) {
                             str = str.replaceAll(targetA, toA);
                         }
+//                        Log.d(Tag, "正则替换后:" + str);
                         break;
                     case "trim":
                         if (str != null) str = str.trim();
+//                        Log.d(Tag, "去空后:" + str);
                         break;
                 }
             }

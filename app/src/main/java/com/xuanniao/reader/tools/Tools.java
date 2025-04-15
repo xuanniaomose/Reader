@@ -12,6 +12,12 @@ import com.xuanniao.reader.item.PlatformItem;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -50,16 +56,34 @@ public class Tools {
         return platformID;
     }
 
-    public static long getLongTime(String stringTime) {
-        long longTime = 0L;
-        SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA);
-        try {
-            Date date = formater.parse(stringTime);
-            if (date != null) longTime = date.getTime();
-        } catch (ParseException e) {
-//            throw new RuntimeException(e);
+    public static String getPlatformCookie(Context context, String platformName) {
+        PlatformDB pdb = PlatformDB.getInstance(context, Constants.DB_BOOK);
+        List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
+        for (PlatformItem item : platformList) {
+            if (Objects.equals(item.getPlatformName(), platformName)) {
+                return item.getPlatformCookie();
+            }
         }
-        return longTime;
+        return null;
+    }
+
+    public static long getLongTime(String stringTime) {
+        Log.d(Tag, "stringTime:" + stringTime);
+        final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd[['T'HH][:mm][:ss]]")
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+                .parseDefaulting(ChronoField.MILLI_OF_SECOND, 0)
+                .toFormatter();
+        LocalDateTime localDateTime;
+        try {
+            localDateTime = LocalDateTime.parse(stringTime, formatter);
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException(e);
+        }
+        ZoneId zoneId = ZoneId.of("GMT+8");
+        return localDateTime.atZone(zoneId).toInstant().toEpochMilli();
     }
 
     public static String getStringTime(long longTime) {

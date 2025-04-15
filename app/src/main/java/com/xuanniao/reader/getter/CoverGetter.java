@@ -7,6 +7,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.preference.PreferenceManager;
+import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.item.PlatformItem;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.lang.ref.WeakReference;
@@ -14,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
     private static final String Tag = "CoverGetter";
@@ -41,6 +47,7 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
     protected Bitmap doInBackground(String... params) {
         imageUrl = params[0];
         String bookName = (params.length > 1)? params[1] : null;
+        String cookie = (params.length > 2)? params[2] : null;
         try {
             // 1. 检查缓存
             if (!isOnlyDownload) {
@@ -54,7 +61,7 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
             if (!isOnlyDownload && bookName != null) {
                 String fileName = "cover.jpg";
                 DocumentFile imageFile = FileTools.getDocumentFileN(context, bookName, fileName);
-                Log.d(Tag, "imageFile:" + (imageFile == null));
+                Log.d(Tag, "imageFile:" + (imageFile != null));
                 if (imageFile != null && imageFile.exists()) {
                     try {
                         InputStream is = context.getContentResolver().openInputStream(imageFile.getUri());
@@ -62,22 +69,23 @@ public class CoverGetter extends AsyncTask<String, Void, Bitmap> {
                         return BitmapFactory.decodeStream(is);
                     } catch (FileNotFoundException e) {
 //                        throw new RuntimeException(e);
-                        return null;
                     }
                 }
             }
-            // 2. 网络下载
+            // 3. 网络下载
+            Log.d(Tag, "开始下载");
             URL url = new URL(imageUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(12000); // 15秒超时
+            if (cookie != null) connection.setRequestProperty("Cookie", cookie);
+            connection.setConnectTimeout(12000); // 12秒超时
             connection.setReadTimeout(12000);
-            connection.setDoInput(true);
+//            connection.setDoInput(true);
             connection.connect();
             InputStream input = connection.getInputStream();
             Bitmap bitmap = BitmapFactory.decodeStream(input);
             Log.d(Tag, "下载完成");
 
-            // 3. 保存到本地
+            // 4. 保存到本地
 //            saveBitmapToLocal(imageUrl, bitmap);
             if (bookName != null) bitmapSave(context, bookName, bitmap);
             Log.d(Tag, "图片过程完成");

@@ -267,10 +267,10 @@ public class BookGetter extends Service {
             msg.what = 2;
         } else {
             msg.what = 1;
-            msg.arg1 = platformID;
-            msg.arg2 = (isDetailed)? 1 : 0;
             msg.obj = bookList;
         }
+        msg.arg1 = platformID;
+        msg.arg2 = (isDetailed)? 1 : 0;
         if (isLocal) {
             LocalFragment.handler_local.sendMessage(msg);
         } else {

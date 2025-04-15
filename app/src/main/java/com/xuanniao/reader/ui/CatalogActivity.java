@@ -61,14 +61,14 @@ public class CatalogActivity extends AppCompatActivity {
         Intent intentGet = getIntent();
         isLocal = intentGet.getBooleanExtra("isLocal", false);
         platformID = intentGet.getIntExtra("platformID", -1);
-//        bookItem = intentGet.getParcelableExtra("bookItem");
         bookItem = (BookItem) intentGet.getSerializableExtra("bookItem");
-        bookName = bookItem.getBookName();
-        bookCode = bookItem.getBookCode();
+        if (bookItem == null)
+            Toast.makeText(this, "无法打开", Toast.LENGTH_SHORT).show();
         tv_bookName = findViewById(R.id.tv_bookName);
         if (bookName != null && !bookName.isEmpty()) {
             tv_bookName.setText(bookName);
         }
+        bookCode = bookItem.getBookCode();
 //        Log.d(Tag, "intentGet.isLocal:" + isLocal);
 //        Log.d(Tag, "intentGet.bookName:" + bookName);
 //        Log.d(Tag, "intentGet.bookCode:" + bookCode);
@@ -142,8 +142,10 @@ public class CatalogActivity extends AppCompatActivity {
                     } else {
                         catalogItem = (CatalogItem) msg.obj;
                         setCatalog(catalogItem);
-                        Log.d(Tag, "新建书目");
-                        FileTools.newBook(CatalogActivity.this, bookItem, catalogItem);
+                        if (!isLocal) {
+                            Log.d(Tag, "新建书目");
+                            FileTools.newBook(CatalogActivity.this, bookItem, catalogItem);
+                        }
                     }
                 } else if (msg.what == 2) {
                     Toast.makeText(CatalogActivity.this, "网络错误", Toast.LENGTH_SHORT).show();

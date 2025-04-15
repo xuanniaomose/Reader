@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.xuanniao.reader.R;
 import com.xuanniao.reader.getter.CoverGetter;
 import com.xuanniao.reader.item.BookItem;
+import com.xuanniao.reader.tools.Tools;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -22,13 +23,14 @@ import java.util.Locale;
 public class BookAdapter extends ArrayAdapter<BookItem> {
     private final String Tag = "BookAdapter";
     private final Context context;
+    private String cookie;
     private List<BookItem> bookList;
 //    private ImageLoaderTask imageLoader;
     private int highlightNum = -1;
     public BookAdapter(Context context, List<BookItem> bookList) {
         super(context, R.layout.book_list_item, bookList);
-        this.bookList = bookList;
         this.context = context;
+        this.bookList = bookList;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         String coverUrl = bookItem.getCoverUrl();
         String bookName = bookItem.getBookName();
         String author = bookItem.getAuthor();
-        long renewTime = bookItem.getRenewTime();
+        long renewTime = bookItem.getRenewTimeLong();
         int wordCount = bookItem.getWordCount();
         String classify = bookItem.getClassify();
         String status = bookItem.getStatus();
@@ -75,7 +77,8 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         if (coverUrl != null) {
             viewHolder.iv_bookICover.setTag(coverUrl);
             CoverGetter coverGetter = new CoverGetter(context, viewHolder.iv_bookICover);
-            coverGetter.execute(coverUrl, bookName);
+            String cookie = Tools.getPlatformCookie(context, bookItem.getPlatformName());
+            coverGetter.execute(coverUrl, bookName, cookie);
         }
 
         viewHolder.tv_bookIName.setText(bookName);
@@ -86,6 +89,7 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
             viewHolder.tv_bookIAuthor.setText("作者：" + author);
         }
         if (renewTime > 0) {
+            Log.d(Tag, "更新时间:" + renewTime);
             SimpleDateFormat formater = new SimpleDateFormat("yyyy.MM.dd", Locale.CHINA);
             viewHolder.tv_bookIRenewTime.setText("更新：" + formater.format(renewTime));
         }
@@ -104,15 +108,15 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         if (chapterTotal > 0) {
             viewHolder.tv_bookITotal.setText("总章数：" + chapterTotal);
         }
+        if (synopsis != null && !synopsis.isEmpty()) {
+            viewHolder.tv_bookISynopsis.setText("简介：" + synopsis);
+        }
         if (position == highlightNum) {
             viewHolder.tv_bookIName.setTextColor(getIntColor("textColorSecondary"));
             viewHolder.tv_bookIName.setBackgroundColor(getIntColor("windowBackgroundSecondary"));
         } else {
             viewHolder.tv_bookIName.setTextColor(getIntColor("textColor"));
             viewHolder.tv_bookIName.setBackgroundColor(getIntColor("transparent"));
-        }
-        if (synopsis != null && !synopsis.isEmpty()) {
-            viewHolder.tv_bookISynopsis.setText("简介：" + synopsis);
         }
         return item;
     }

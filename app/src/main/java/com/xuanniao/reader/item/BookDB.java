@@ -422,7 +422,7 @@ public class BookDB extends SQLiteOpenHelper {
             book.setUriStr(cursor.getString(2));
             book.setAuthor(cursor.getString(3));
             book.setSynopsis(cursor.getString(4));
-            book.setRenewTime(cursor.getInt(5));
+            book.setRenewTime(cursor.getInt(5) * 1000L);
             book.setWordCount(cursor.getInt(6));
             book.setCoverUrl(cursor.getString(7));
 

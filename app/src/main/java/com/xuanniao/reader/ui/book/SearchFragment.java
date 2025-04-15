@@ -128,13 +128,13 @@ public class SearchFragment extends Fragment {
                     intent.putExtra("bookName", query);
                 } else {
                     Log.d(Tag, "platformID:" + platformID);
-                    if (platformList != null && Objects.equals(platformList.get(platformID)
-                            .getAccurateSearch(), "catalog")) {
-                        intent = new Intent(context, CatalogGetter.class);
-                    } else {
+//                    if (platformList != null && Objects.equals(platformList.get(platformID)
+//                            .getAccurateSearch(), "catalog")) {
+//                        intent = new Intent(context, CatalogGetter.class);
+//                    } else {
                         intent = new Intent(context, InfoGetter.class);
                         intent.putExtra("num", 0);
-                    }
+//                    }
                     intent.putExtra("bookCode", query);
                 }
                 intent.putExtra("isLocal", false);

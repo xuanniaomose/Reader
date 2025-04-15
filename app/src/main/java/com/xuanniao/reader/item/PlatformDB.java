@@ -86,9 +86,7 @@ public class PlatformDB extends SQLiteOpenHelper {
 
                 "chapterPage VARCHAR," +
                 "chapterError VARCHAR," +
-                "chapterPageFormat VARCHAR," +
-
-                "accurateSearch VARCHAR" +
+                "chapterPageFormat VARCHAR" +
                 ");";
         //执行sql文
         db.execSQL(sql);
@@ -342,8 +340,6 @@ public class PlatformDB extends SQLiteOpenHelper {
         values.put("chapterPage", String.join(",", platformItem.getChapterPage()));
         values.put("chapterError", platformItem.getChapterError());
         values.put("chapterPageFormat", platformItem.getChapterPageFormat());
-
-        values.put("accurateSearch", platformItem.getAccurateSearch());
         return values;
     }
 
@@ -379,7 +375,6 @@ public class PlatformDB extends SQLiteOpenHelper {
             platform.setChapterError(cursor.getString(19));
             platform.setChapterPageFormat(cursor.getString(20));
 
-            platform.setAccurateSearch(cursor.getString(21));
             list.add(platform);
         }
         return list;

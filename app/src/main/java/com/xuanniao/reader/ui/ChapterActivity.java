@@ -86,10 +86,10 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         }
         tv_title = findViewById(R.id.tv_title);
         tv_title.setText(chapterTitle);
-//        Log.d(Tag, "bookCode:" + bookCode);
-//        Log.d(Tag, "bookName:" + bookName);
-//        Log.d(Tag, "chapterCode:" + chapterCode);
-//        Log.d(Tag, "chapterNum:" + chapterNum);
+        Log.d(Tag, "bookCode:" + bookCode);
+        Log.d(Tag, "bookName:" + bookName);
+        Log.d(Tag, "chapterCode:" + chapterCode);
+        Log.d(Tag, "chapterNum:" + chapterNum);
         lv_article = findViewById(R.id.lv_article);
         lv_article.setOnItemClickListener((adapterView, view, i, l) -> {
             if (ttsState == 1) {
@@ -314,6 +314,7 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         return new Handler(Looper.myLooper()) {
             @Override
             public void handleMessage(Message msg) {
+                Log.d(Tag, "收到了消息 part:" + msg.arg2);
                 boolean isManual = (msg.arg1 == 1)? true : false;
                 if (msg.what == 1) {
                     ChapterItem item = (ChapterItem) msg.obj;
@@ -352,8 +353,10 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                             startService(intent);
                         }
                     } else {
-                        Log.d(Tag, "新建书目");
-                        FileTools.saveChapter(ChapterActivity.this, item, 0);
+                        if (!isLocal) {
+                            Log.d(Tag, "新建章节");
+                            FileTools.saveChapter(ChapterActivity.this, item, 0);
+                        }
                     }
                 } else if (msg.what == 2) {
                     Toast.makeText(ChapterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
@@ -435,8 +438,10 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
         Intent intent = new Intent(ChapterActivity.this, CatalogActivity.class);
         intent.putExtra("isLocal", isLocal);
         intent.putExtra("platformID", platformID);
-        intent.putExtra("bookName", bookName);
-        intent.putExtra("bookCode", bookCode);
+        BookItem bookItem = new BookItem();
+        bookItem.setBookName(bookName);
+        bookItem.setBookCode(bookCode);
+        intent.putExtra("bookItem", bookItem);
         startActivity(intent);
     }
 }

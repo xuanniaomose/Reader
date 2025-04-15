@@ -92,7 +92,7 @@ public class FileTools {
      * @param bookItem 书目
      * @return 是否写入成功
      */
-    public static boolean infoSave(Context context, BookItem bookItem) {
+    public static boolean infoSave(Context context, BookItem bookItem, String cookie) {
         String catalogFileName = "0000目录.txt";
         try {
             DocumentFile catalogFile = getDocumentFileC(context, bookItem.getBookName(), catalogFileName);
@@ -115,7 +115,7 @@ public class FileTools {
         if (status != null) writer.write(Constants.STATUS + ":" + status + "\r\n");
         String classify = bookItem.getClassify();
         if (classify != null) writer.write(Constants.CLASSIFY + ":" + classify + "\r\n");
-        String renewTime = Tools.getStringTime(bookItem.getRenewTime());
+        String renewTime = Tools.getStringTime(bookItem.getRenewTimeLong());
         if (renewTime != null) writer.write(Constants.RENEW_TIME + ":" + renewTime + "\r\n");
         String synopsis = bookItem.getSynopsis();
         if (synopsis != null) writer.write(Constants.SYNOPSIS + ":" + synopsis + "\r\n");
@@ -221,6 +221,7 @@ public class FileTools {
      * @return 书目
      */
     public static BookItem loadLocalBook(Context context, Uri uri) {
+        Log.d(Tag, "加载本地书目");
         BookItem bookItem = new BookItem();
         // 遍历文件夹
         DocumentFile directory = DocumentFile.fromTreeUri(context, uri);
@@ -234,9 +235,29 @@ public class FileTools {
                         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
                         String line;
                         while ((line = br.readLine()) != null) {
-                            bookItem = getBookItem(bookItem, line);
+                            Log.d(Tag, "line:" + line);
+                            if (line.contains(Constants.BOOK_CODE)) {
+                                bookItem.setBookCode(line.replace(Constants.BOOK_CODE + ":", ""));
+                            } else if (line.contains(Constants.PLATFORM_NAME)) {
+                                bookItem.setPlatformName(line.replace(Constants.PLATFORM_NAME + ":", ""));
+                            } else if (line.contains(Constants.AUTHOR)) {
+                                bookItem.setAuthor(line.replace(Constants.AUTHOR + ":", ""));
+                            } else if (line.contains(Constants.CLASSIFY)) {
+                                bookItem.setClassify(line.replace(Constants.CLASSIFY + ":", ""));
+                            } else if (line.contains(Constants.STATUS)) {
+                                bookItem.setStatus(line.replace(Constants.STATUS + ":", ""));
+                            } else if (line.contains(Constants.RENEW_TIME)) {
+                                String time = line.replace(Constants.RENEW_TIME + ":", "");
+                                bookItem.setRenewTime(Tools.getLongTime(time));
+                            } else if (line.contains(Constants.SYNOPSIS)) {
+                                bookItem.setSynopsis(line.replace(Constants.SYNOPSIS + ":", ""));
+                            } else if (line.contains(Constants.COVER_URL)) {
+                                bookItem.setCoverUrl(line.replace(Constants.COVER_URL + ":", ""));
+                            } else {
+                                break;
+                            }
                         }
-                        Log.d(Tag, "classify:" + bookItem.getClassify());
+                        Log.d(Tag, "更新:" + bookItem.getRenewTimeLong());
                     } catch (IOException ignored) {}
                 }
             }
@@ -256,28 +277,30 @@ public class FileTools {
         return bookItem;
     }
 
-    public static BookItem getBookItem(BookItem bookItem, String line) {
-        Log.d(Tag, "line:" + line);
-        if (line.contains(Constants.BOOK_CODE)) {
-            bookItem.setBookCode(line.replace(Constants.BOOK_CODE + ":", ""));
-        } else if (line.contains(Constants.PLATFORM_NAME)) {
-            bookItem.setPlatformName(line.replace(Constants.PLATFORM_NAME + ":", ""));
-        } else if (line.contains(Constants.AUTHOR)) {
-            bookItem.setAuthor(line.replace(Constants.AUTHOR + ":", ""));
-        } else if (line.contains(Constants.CLASSIFY)) {
-            bookItem.setClassify(line.replace(Constants.CLASSIFY + ":", ""));
-        } else if (line.contains(Constants.STATUS)) {
-            bookItem.setStatus(line.replace(Constants.STATUS + ":", ""));
-        } else if (line.contains(Constants.RENEW_TIME)) {
-            String time = line.replace(Constants.RENEW_TIME + ":", "");
-            bookItem.setRenewTime(Tools.getLongTime(time));
-        } else if (line.contains(Constants.SYNOPSIS)) {
-            bookItem.setSynopsis(line.replace(Constants.SYNOPSIS + ":", ""));
-        } else if (line.contains(Constants.COVER_URL)) {
-            bookItem.setCoverUrl(line.replace(Constants.COVER_URL + ":", ""));
-        }
-        return bookItem;
-    }
+//    public static BookItem getBookItem(BookItem bookItem, String line) {
+//        Log.d(Tag, "line:" + line);
+//        if (line.contains(Constants.BOOK_CODE)) {
+//            bookItem.setBookCode(line.replace(Constants.BOOK_CODE + ":", ""));
+//        } else if (line.contains(Constants.PLATFORM_NAME)) {
+//            bookItem.setPlatformName(line.replace(Constants.PLATFORM_NAME + ":", ""));
+//        } else if (line.contains(Constants.AUTHOR)) {
+//            bookItem.setAuthor(line.replace(Constants.AUTHOR + ":", ""));
+//        } else if (line.contains(Constants.CLASSIFY)) {
+//            bookItem.setClassify(line.replace(Constants.CLASSIFY + ":", ""));
+//        } else if (line.contains(Constants.STATUS)) {
+//            bookItem.setStatus(line.replace(Constants.STATUS + ":", ""));
+//        } else if (line.contains(Constants.RENEW_TIME)) {
+//            String time = line.replace(Constants.RENEW_TIME + ":", "");
+//            bookItem.setRenewTime(Tools.getLongTime(time));
+//        } else if (line.contains(Constants.SYNOPSIS)) {
+//            bookItem.setSynopsis(line.replace(Constants.SYNOPSIS + ":", ""));
+//        } else if (line.contains(Constants.COVER_URL)) {
+//            bookItem.setCoverUrl(line.replace(Constants.COVER_URL + ":", ""));
+//        } else {
+//            return bookItem;
+//        }
+//        return bookItem;
+//    }
 
     /**
      * 读取本地目录的方法
@@ -294,15 +317,17 @@ public class FileTools {
             BufferedReader br = new BufferedReader(new InputStreamReader(ins));
             String line;
             while ((line = br.readLine()) != null) {
-//                Log.d(Tag, "line:" + line);
-                if (line.contains("bookCode")) {
-                    catalogItem.setBookCode(line.replace("bookCode:", ""));
-                } else if (line.contains("platformName")) {
-                    catalogItem.setPlatformName(line.replace("platformName:", ""));
-                } else if (line.contains("/x/")) {
-                    String[] l = line.split("/x/");
-                    catalogItem.addChapterTitle(l[1]);
-                    catalogItem.addChapterCode(l[2]);
+                Log.d(Tag, "line:" + line);
+                if (line.contains(Constants.BOOK_CODE)) {
+                    catalogItem.setBookCode(line.replace(Constants.BOOK_CODE + ":", ""));
+                } else if (line.contains(Constants.PLATFORM_NAME)) {
+                    catalogItem.setPlatformName(line.replace(Constants.PLATFORM_NAME + ":", ""));
+                } else if (line.contains("/ /")) {
+                    String[] l = line.split("/ /");
+                    if (l.length > 2) {
+                        catalogItem.addChapterTitle(l[1]);
+                        catalogItem.addChapterCode(l[2]);
+                    }
                 }
             }
             return catalogItem;

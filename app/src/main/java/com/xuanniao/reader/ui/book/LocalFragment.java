@@ -21,6 +21,7 @@ import com.xuanniao.reader.getter.InfoGetter;
 import com.xuanniao.reader.item.BookItem;
 import com.xuanniao.reader.item.BookDB;
 import com.xuanniao.reader.tools.Constants;
+import com.xuanniao.reader.tools.Tools;
 import com.xuanniao.reader.ui.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -118,7 +119,7 @@ public class LocalFragment extends Fragment {
         AlertDialog dialog = new AlertDialog.Builder(mContext)
 //                .setIcon(R.drawable.ic_logo)//设置标题的图片
                 .setTitle("是否删除")//设置对话框的标题
-                .setMessage(item.getBookName() + "作者" + item.getAuthor())//设置对话框的内容
+                .setMessage(item.getBookName() + " 作者" + item.getAuthor())//设置对话框的内容
                 //设置对话框的按钮
                 .setPositiveButton("删除", new DialogInterface.OnClickListener() {
                     @Override

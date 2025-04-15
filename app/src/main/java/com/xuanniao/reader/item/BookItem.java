@@ -1,13 +1,10 @@
 package com.xuanniao.reader.item;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-import com.xuanniao.reader.tools.Constants;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class BookItem implements Serializable {
     String bookName;
@@ -51,6 +48,7 @@ public class BookItem implements Serializable {
     }
 
     public void setRenewTime(long renewTime) {
+        Log.d("BookItem", "renewTimeLong:" + renewTime);
         this.renewTime = (int) (renewTime / 1000);
     }
     public void setWordCount(int wordCount) {
@@ -150,8 +148,14 @@ public class BookItem implements Serializable {
     }
 
     public long getRenewTime() {
+        return renewTime;
+    }
+
+    public long getRenewTimeLong() {
+        Log.d("BookItem", "renewTime:" + renewTime);
         return renewTime * 1000L;
     }
+
     public int getWordCount() {
         return wordCount;
     }

@@ -71,7 +71,7 @@ public class ChapterGetter extends Service {
                 chapterItem.setChapterNum(chapterNum);
                 chapterItem.setChapterCode(chapterCode);
                 Log.d(Tag, "chapterNum:" + chapterNum + " | chapterCode:" + chapterCode);
-                if (platformID == -1) {
+                if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
                     if (pageCode == null) {
                         getHtml(this, isManual, platformItem, chapterItem);
@@ -100,7 +100,7 @@ public class ChapterGetter extends Service {
     private void getHtml(Context context, boolean isManual, PlatformItem platformItem, ChapterItem chapterItem) {
         String url = platformItem.getPlatformUrl() + chapterItem.getBookCode()
                 + "/" + chapterItem.getChapterCode() + ".html";
-        Log.d("url", url);
+        Log.d(Tag, "url：" + url);
         String cookie = platformItem.getPlatformCookie();
         Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
@@ -122,26 +122,6 @@ public class ChapterGetter extends Service {
                 String htmlContent = responseToContent(context, response.body(),
                         platformItem.getCharsetName(), platformItem.getChapterError());
                 htmlToChapter(isManual, platformItem, htmlContent, chapterItem, 0);
-
-                try {
-                    if (response.body() != null) {
-                        Log.d(Tag, "请求成功");
-                        String charsetName = platformItem.getCharsetName();
-                        charsetName = (charsetName.isEmpty())?
-                                PreferenceManager.getDefaultSharedPreferences(context)
-                                        .getString("charsetName", "UTF-8") : charsetName;
-                        Log.d(Tag, "charsetName:" + charsetName);
-                        htmlContent = new String(response.body().bytes(), charsetName);
-                        Log.d(Tag, "htmlContent:" + htmlContent);
-                    } else {
-                        Log.d(Tag, "请求失败 没有返回值");
-                        htmlContent = "0";
-                    }
-                    htmlToChapter(isManual, platformItem, htmlContent, chapterItem, 0);
-                } catch (IOException e) {
-                    Log.e(Tag, "e:" + e.getMessage());
-                    sendMessage(isManual, chapterItem, 0);
-                }
             }
         });
     }
@@ -154,7 +134,7 @@ public class ChapterGetter extends Service {
      */
     private void htmlToChapter(boolean isManual, PlatformItem platformItem, String htmlContent,
                                ChapterItem chapterItem, int part) {
-//        Log.d(Tag, "htmlContent:" + htmlContent);
+        Log.d(Tag, "htmlContent:" + htmlContent);
         Log.d(Tag, "开始匹配ChapterList");
         String[] chapterPage = platformItem.getChapterPage();
 //        Log.d(Tag, "chapterPage:" + Arrays.toString(chapterPage));
@@ -169,7 +149,8 @@ public class ChapterGetter extends Service {
             if (title == null) return;
             chapterItem.setTitle(title);
             JSONArray findPage = chapterFormatJson.getJSONArray("chapterPartPage");
-            if (part == 0 && findPage != null) {
+            Log.d(Tag, "分页：" + (findPage != null) + " part：" + part);
+            if (part == 0 && findPage != null && !findPage.isEmpty()) {
                 Elements chapterPages = Filter.switchActionToElements(findPage, doc);
                 if (chapterPages == null) return;
                 JSONArray pageCodeStep = chapterFormatJson.getJSONArray("chapterPageCode");
@@ -185,7 +166,8 @@ public class ChapterGetter extends Service {
                 part = (part + 1) * 100 + total;
             }
             JSONArray pageIndex = chapterFormatJson.getJSONArray("chapterPartPageIndex");
-            if (part == 0 && pageIndex != null) {
+            Log.d(Tag, "分页：" + (pageIndex != null) + " 分页信息：" + pageIndex);
+            if (part == 0 && pageIndex != null && !pageIndex.isEmpty()) {
                 String chapterPath = platformItem.getChapterPath();
                 boolean haveHtml = chapterPath.contains(".html");
                 if (haveHtml) chapterPath = chapterPath.replace(".html", "");
@@ -213,6 +195,8 @@ public class ChapterGetter extends Service {
         JSONArray findList = fJson.getJSONArray("paragraphList");
         if (containP) {
             Elements chapterAttrs = Filter.switchActionToElements(findList, doc);
+            // 针对br标签
+
             if (chapterAttrs == null) return item;
             JSONArray paragraphStep = fJson.getJSONArray("paragraph");
             for (Element chapterAttr : chapterAttrs) {
@@ -237,7 +221,7 @@ public class ChapterGetter extends Service {
                          ChapterItem chapterItem, String pageCode, int part) {
         String strUrl = platformItem.getPlatformUrl() + chapterItem.getChapterCode()
                 + "/" + pageCode;
-        Log.d("url", strUrl);
+        Log.d(Tag,"part url:" + strUrl);
         String cookie = platformItem.getPlatformCookie();
 //        Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
@@ -298,20 +282,17 @@ public class ChapterGetter extends Service {
             if (chapterItem.getIsLocal()) {
                 // 本地没有
                 msg.what = 3;
-                msg.arg1 = (isManual)? 1 : 0;
-                msg.arg2 = part;
                 msg.obj = chapterItem;
             } else {
                 // 网络错误
                 msg.what = 2;
-                msg.arg1 = (isManual)? 1 : 0;
             }
         } else {
             msg.what = 1;
-            msg.arg1 = (isManual)? 1 : 0;
-            msg.arg2 = part;
             msg.obj = chapterItem;
         }
+        msg.arg1 = (isManual)? 1 : 0;
+        msg.arg2 = part;
         ChapterActivity.handler_paragraph.sendMessage(msg);
     }
 

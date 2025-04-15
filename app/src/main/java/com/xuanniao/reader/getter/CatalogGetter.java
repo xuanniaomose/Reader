@@ -48,8 +48,9 @@ public class CatalogGetter extends Service {
                     "Thread ID = " + Thread.currentThread().getId());
             boolean isLocal = intent.getBooleanExtra("isLocal", true);
             int platformID = intent.getIntExtra("platformID", -1);
-            BookItem bookItem = (BookItem) intent.getSerializableExtra("bookItem");
             int part = intent.getIntExtra("part", 0);
+            BookItem bookItem = (BookItem) intent.getSerializableExtra("bookItem");
+            if (bookItem == null) sendMessage(platformID, null, part);
             String pageCode = intent.getStringExtra("pageCode");
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
@@ -57,7 +58,7 @@ public class CatalogGetter extends Service {
             Log.d(Tag, "isLocal:" + isLocal + " | platformID:" + platformID);
             if (isLocal) {
                 CatalogItem catalogItem = FileTools.loadLocalCatalog(this, bookItem.getBookName());
-                if (catalogItem == null) return;
+                if (catalogItem == null) sendMessage(platformID, null, part);
                 sendMessage(1, catalogItem, 0);
             } else {
                 if (platformID != -1) {
@@ -91,7 +92,7 @@ public class CatalogGetter extends Service {
         if (bookItem.getBookCode() == null || platformItem.getCatalogPath() == null) return;
         String url = platformItem.getPlatformUrl() + bookItem.getBookCode()
                 + "/" + platformItem.getCatalogPath();
-        Log.d("url", url);
+        Log.d("url:", url);
         String cookie = platformItem.getPlatformCookie();
         Log.d(Tag, "Cookie:" + cookie);
         Request request = new Request.Builder()
@@ -260,17 +261,17 @@ public class CatalogGetter extends Service {
     private void sendMessage(int platformID, CatalogItem catalogItem, int part) {
         Message msg = new Message();
         Log.d(Tag, "解读出来是目录列表");
-        if (catalogItem.getChapterCodeList() == null ||
+        if (catalogItem == null || catalogItem.getChapterCodeList() == null ||
                 catalogItem.getChapterCodeList().isEmpty() ||
                 Objects.equals(catalogItem.getChapterCodeList().get(0), "")) {
             // 网络错误
             msg.what = 2;
         } else {
             msg.what = 1;
-            msg.arg1 = platformID;
-            msg.arg2 = part;
             msg.obj = catalogItem;
         }
+        msg.arg1 = platformID;
+        msg.arg2 = part;
         CatalogActivity.handler_catalog.sendMessage(msg);
     }
 

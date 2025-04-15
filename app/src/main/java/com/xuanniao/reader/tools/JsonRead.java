@@ -102,8 +102,6 @@ public class JsonRead {
                 Log.d(Tag, "chapterPage:" + chapterPage);
                 platformItem.setChapterPageFormat(chapterPage.toString());
 
-                String accurateSearch = (String) item.get("accurateSearch");
-                platformItem.setAccurateSearch(accurateSearch);
                 platformList.add(platformItem);
             }
         } catch (JSONException e) {
