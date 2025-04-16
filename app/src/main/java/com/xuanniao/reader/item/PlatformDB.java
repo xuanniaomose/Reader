@@ -325,9 +325,11 @@ public class PlatformDB extends SQLiteOpenHelper {
         values.put("catalogPath", platformItem.getCatalogPath());
         values.put("chapterPath", platformItem.getChapterPath());
 
-        values.put("resultPage", String.join(",", platformItem.getResultPage()));
-        values.put("resultError", platformItem.getResultError());
-        values.put("resultPageFormat", platformItem.getResultPageFormat());
+        if (platformItem.getResultPage() != null) {
+            values.put("resultPage", String.join(",", platformItem.getResultPage()));
+            values.put("resultError", platformItem.getResultError());
+            values.put("resultPageFormat", platformItem.getResultPageFormat());
+        }
 
         values.put("infoPage", String.join(",", platformItem.getInfoPage()));
         values.put("infoError", platformItem.getInfoError());
@@ -359,9 +361,11 @@ public class PlatformDB extends SQLiteOpenHelper {
             platform.setCatalogPath(cursor.getString(7));
             platform.setChapterPath(cursor.getString(8));
 
-            platform.setResultPage(cursor.getString(9).split(","));
-            platform.setResultError(cursor.getString(10));
-            platform.setResultPageFormat(cursor.getString(11));
+            if (cursor.getString(9) != null) {
+                platform.setResultPage(cursor.getString(9).split(","));
+                platform.setResultError(cursor.getString(10));
+                platform.setResultPageFormat(cursor.getString(11));
+            }
 
             platform.setInfoPage(cursor.getString(12).split(","));
             platform.setInfoError(cursor.getString(13));

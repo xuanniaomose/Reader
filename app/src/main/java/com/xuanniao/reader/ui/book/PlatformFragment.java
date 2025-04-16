@@ -139,11 +139,11 @@ public class PlatformFragment extends Fragment {
                 Log.d(Tag, "平台名称:" + platformList.get(0).getPlatformName());
                 platformAdapter = new PlatformAdapter(mContext, platformList);
                 lv_platform.setAdapter(platformAdapter);
-                Message msg = new Message();
-                msg.what = 1;
-                msg.obj = platformList;
-                SearchFragment.handler_setPlatform.sendMessage(msg);
-
+                if (SearchFragment.handler_setPlatform == null) {
+                    Message msg = new Message();
+                    msg.what = 1;
+                    msg.obj = platformList;
+                }
                 showFalseWindow();
             }
         }

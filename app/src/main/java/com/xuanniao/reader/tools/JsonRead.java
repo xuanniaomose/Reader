@@ -42,19 +42,21 @@ public class JsonRead {
                 platformItem.setChapterPath(chapterPath);
 
                 // 结果页面
-                JSONObject resultPage = (JSONObject) item.get("resultPage");
-                Iterator resultListI = resultPage.keys();
-                List<String> resultList = new ArrayList<>();
-                while(resultListI.hasNext()){
-                    String key = (String) resultListI.next();
-                    resultList.add(key);
+                if (!item.isNull("resultPage")){
+                    JSONObject resultPage = (JSONObject) item.get("resultPage");
+                    Iterator resultListI = resultPage.keys();
+                    List<String> resultList = new ArrayList<>();
+                    while (resultListI.hasNext()) {
+                        String key = (String) resultListI.next();
+                        resultList.add(key);
+                    }
+                    Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
+                    platformItem.setResultPage(resultList.toArray(new String[]{}));
+                    String resultError = (String) item.get("resultError");
+                    platformItem.setResultError(resultError);
+                    Log.d(Tag, "resultPage:" + resultPage);
+                    platformItem.setResultPageFormat(resultPage.toString());
                 }
-                Log.d(Tag, "resultList:" + Arrays.toString(resultList.toArray(new String[]{})));
-                platformItem.setResultPage(resultList.toArray(new String[]{}));
-                String resultError = (String) item.get("resultError");
-                platformItem.setResultError(resultError);
-                Log.d(Tag, "resultPage:" + resultPage);
-                platformItem.setResultPageFormat(resultPage.toString());
 
                 // 详情页面
                 JSONObject infoPage = (JSONObject) item.get("infoPage");

@@ -97,9 +97,10 @@ public class ChapterGetter extends Service {
      * @param platformItem 平台
      * @param chapterItem 输入的章节
      */
-    private void getHtml(Context context, boolean isManual, PlatformItem platformItem, ChapterItem chapterItem) {
-        String url = platformItem.getPlatformUrl() + chapterItem.getBookCode()
-                + "/" + chapterItem.getChapterCode() + ".html";
+    private void getHtml(Context context, boolean isManual, PlatformItem platformItem,
+                         ChapterItem chapterItem) {
+        String url = platformItem.getPlatformUrl() + chapterItem.getChapterCode()
+                + platformItem.getChapterPath();
         Log.d(Tag, "url：" + url);
         String cookie = platformItem.getPlatformCookie();
         Log.d(Tag, "Cookie:" + cookie);
@@ -148,6 +149,7 @@ public class ChapterGetter extends Service {
             String title = Filter.getAttr(titleStep, doc.body());
             if (title == null) return;
             chapterItem.setTitle(title);
+            // 获取分页列表
             JSONArray findPage = chapterFormatJson.getJSONArray("chapterPartPage");
             Log.d(Tag, "分页：" + (findPage != null) + " part：" + part);
             if (part == 0 && findPage != null && !findPage.isEmpty()) {
@@ -165,6 +167,7 @@ public class ChapterGetter extends Service {
                 }
                 part = (part + 1) * 100 + total;
             }
+            // 没有分页列表，但是知道每章一定有多少分页
             JSONArray pageIndex = chapterFormatJson.getJSONArray("chapterPartPageIndex");
             Log.d(Tag, "分页：" + (pageIndex != null) + " 分页信息：" + pageIndex);
             if (part == 0 && pageIndex != null && !pageIndex.isEmpty()) {
@@ -181,6 +184,20 @@ public class ChapterGetter extends Service {
                 }
                 part = (part + 1) * 100 + total;
             }
+            // 没有分页列表，只能靠“下一页”来获取分页链接的情况
+            JSONArray pageNext = chapterFormatJson.getJSONArray("chapterPartPageNext");
+            Log.d(Tag, "分页：" + (pageNext != null) + " 分页信息：" + pageNext);
+            if (pageNext != null && !pageNext.isEmpty()) {
+                String pageCode = Filter.getAttr(pageNext, doc);
+                if (pageCode != null && !pageCode.isEmpty()) {
+                    chapterItem.addChapterPageCode(pageCode);
+                    // 把total设定为最大值
+                    part = (part + 1) * 100 + 99;
+                } else {
+                    // 到这章的最后一个分页，把total设置为0
+                    part = (part + 1) * 100;
+                }
+            }
             boolean containP = Arrays.asList(chapterPage).contains("paragraph");
             chapterItem = getChapterItem(chapterFormatJson, containP, doc, chapterItem);
         } catch (JSONException e) {
@@ -191,12 +208,18 @@ public class ChapterGetter extends Service {
         sendMessage(isManual, chapterItem, part);
     }
 
+    /**
+     * 写入item的方法
+     * @param fJson 获取item元素的方法
+     * @param containP 段落是否是每段一个元素罗列的（不是的话按一整段用br标签分段处理）
+     * @param doc 获取的网页Jsoup文档
+     * @param item 要写入的item
+     * @return 写入好的item
+     */
     private static ChapterItem getChapterItem(JSONObject fJson, boolean containP, Document doc, ChapterItem item){
         JSONArray findList = fJson.getJSONArray("paragraphList");
         if (containP) {
             Elements chapterAttrs = Filter.switchActionToElements(findList, doc);
-            // 针对br标签
-
             if (chapterAttrs == null) return item;
             JSONArray paragraphStep = fJson.getJSONArray("paragraph");
             for (Element chapterAttr : chapterAttrs) {
@@ -219,8 +242,7 @@ public class ChapterGetter extends Service {
 
     void getPartPageHtml(Context context, boolean isManual, PlatformItem platformItem,
                          ChapterItem chapterItem, String pageCode, int part) {
-        String strUrl = platformItem.getPlatformUrl() + chapterItem.getChapterCode()
-                + "/" + pageCode;
+        String strUrl = platformItem.getPlatformUrl() + chapterItem.getChapterCode() + pageCode;
         Log.d(Tag,"part url:" + strUrl);
         String cookie = platformItem.getPlatformCookie();
 //        Log.d(Tag, "Cookie:" + cookie);

@@ -84,8 +84,8 @@ public class InfoGetter extends Service {
      */
     private void getHtml(Context context, PlatformItem platformItem, int num,
                          String bookCode, boolean isCreate, boolean isLocal) {
-        String url = platformItem.getPlatformUrl() + bookCode + "/" + platformItem.getInfoPath();
-//        Log.d("url", url);
+        String url = platformItem.getPlatformUrl() + "/" + bookCode + platformItem.getInfoPath();
+        Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
         Request request = new Request.Builder()
                 .url(url)

@@ -90,8 +90,8 @@ public class CatalogGetter extends Service {
      */
     private void getHtml(Context context, PlatformItem platformItem, BookItem bookItem) {
         if (bookItem.getBookCode() == null || platformItem.getCatalogPath() == null) return;
-        String url = platformItem.getPlatformUrl() + bookItem.getBookCode()
-                + "/" + platformItem.getCatalogPath();
+        String url = platformItem.getPlatformUrl() + "/" + bookItem.getBookCode()
+                + platformItem.getCatalogPath();
         Log.d("url:", url);
         String cookie = platformItem.getPlatformCookie();
         Log.d(Tag, "Cookie:" + cookie);
@@ -195,7 +195,7 @@ public class CatalogGetter extends Service {
 
     void getPartPageHtml(Context context, PlatformItem item, String bookCode,
                          String pageCode, int part) {
-        String strUrl = item.getPlatformUrl() + bookCode + "/" + pageCode;
+        String strUrl = item.getPlatformUrl() + "/" + bookCode + "/" + pageCode;
         Log.d("url", strUrl);
         String cookie = item.getPlatformCookie();
 //        Log.d(Tag, "Cookie:" + cookie);

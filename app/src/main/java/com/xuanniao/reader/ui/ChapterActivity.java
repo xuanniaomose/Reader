@@ -325,14 +325,16 @@ public class ChapterActivity extends AppCompatActivity implements TTSService.Cal
                         int total = msg.arg2 % 100;
                         Log.d(Tag, "part:" + part + " | total:" + total);
                         if (part == 1) {
-                            FileTools.saveChapter(ChapterActivity.this, item, 0);
+                            int i = FileTools.saveChapter(ChapterActivity.this, item, 0);
+                            Log.d(Tag, "章节存储:" + i);
                         } else {
                             int start = paragraphList.size();
                             List<String> paragraphList = item.getChapter();
                             Log.d(Tag, "part paragraphList:" + paragraphList.get(0));
                             paragraphList.addAll(paragraphList);
+
                             int i = FileTools.saveChapter(ChapterActivity.this, item, start);
-                            Log.d(Tag, "目录追加:" + i);
+                            Log.d(Tag, "章节追加:" + i);
                         }
                         if (part < total) {
                             if (chapterPageCodeList == null)

@@ -51,44 +51,10 @@ public class Filter {
             if (attr == null) continue;
             JSONArray attrStepJson = pageJson.getJSONArray(attr);
 //            Log.d(Tag, "htmlListItem:" + htmlListItem);
-            String str = getAttr(attrStepJson, htmlListItem);
+            String attrValue = getAttr(attrStepJson, htmlListItem);
 //            Log.d(Tag, "str:" + str);
-            if (str == null) continue;
-            switch (attr) {
-                case "resultList":
-                    continue;
-                case "infoList":
-                    continue;
-                case "bookCode":
-                    bookItem.setBookCode(str);
-                    break;
-                case "bookName":
-                    bookItem.setBookName(str);
-                    break;
-                case "author":
-                    bookItem.setAuthor(str);
-                    break;
-                case "classify":
-                    bookItem.setClassify(str);
-                    break;
-                case "status":
-                    bookItem.setStatus(str);
-                    break;
-                case "renewTime":
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINESE);
-                    Date parsedDate = null;
-                    try {
-                        parsedDate = dateFormat.parse(str);
-                    } catch (ParseException e) {
-                        Log.e(Tag, "Error:" + e);
-                    }
-                    long date = (parsedDate != null)? parsedDate.getTime() : 0;
-                    bookItem.setRenewTime(date);
-                    break;
-                case "synopsis":
-                    bookItem.setSynopsis(str);
-                    break;
-            }
+            if (attrValue == null) continue;
+            switchBookItem(bookItem, attr, attrValue);
         }
         return bookItem;
     }
@@ -107,25 +73,52 @@ public class Filter {
             attrValue = map.get(attr);
 //            Log.d(Tag, "attrValue:" + attrValue);
             if (attr == null) continue;
-            switch (attr) {
-                case "resultList":
-                    continue;
-                case "bookCode":
-                    bookItem.setBookCode(attrValue);
-                    break;
-                case "bookName":
-                    bookItem.setBookName(attrValue);
-                    break;
-                case "classify":
-                    bookItem.setClassify(attrValue);
-                    break;
-                case "chapter_count_geted":
-                    bookItem.setChapterTotal(Integer.parseInt(attrValue));
-                    break;
-                case "author":
-                    bookItem.setAuthor(attrValue);
-                    break;
-            }
+            switchBookItem(bookItem, attr, attrValue);
+        }
+        return bookItem;
+    }
+
+    static BookItem switchBookItem(BookItem bookItem, String attr, String str) {
+        switch (attr) {
+            case "resultList":
+                break;
+            case "infoList":
+                break;
+            case "bookCode":
+                bookItem.setBookCode(str);
+                break;
+            case "bookName":
+                bookItem.setBookName(str);
+                break;
+            case "author":
+                bookItem.setAuthor(str);
+                break;
+            case "classify":
+                bookItem.setClassify(str);
+                break;
+            case "status":
+                bookItem.setStatus(str);
+                break;
+            case "renewTime":
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINESE);
+                Date parsedDate = null;
+                try {
+                    parsedDate = dateFormat.parse(str);
+                } catch (ParseException e) {
+                    Log.e(Tag, "Error:" + e);
+                }
+                long date = (parsedDate != null)? parsedDate.getTime() : 0;
+                bookItem.setRenewTime(date);
+                break;
+            case "wordCount":
+                bookItem.setWordCount(Integer.parseInt(str));
+                break;
+            case "chapterTotal":
+                bookItem.setWordCount(Integer.parseInt(str));
+                break;
+            case "synopsis":
+                bookItem.setSynopsis(str);
+                break;
         }
         return bookItem;
     }
@@ -289,11 +282,11 @@ public class Filter {
                     case "select":
                         String selectBy = step.getString("by");
                         String selectGet = step.getString("get");
-//                        Log.d(Tag, "selectBy:" + selectBy + " get:" + selectGet);
-                        if (selectBy != null) {
+                        Log.d(Tag, "selectBy:" + selectBy + " get:" + selectGet);
+                        if (selectBy != null && !selectBy.isEmpty()) {
                             elements = (element == null)?
                                     htmlListItem.select(selectBy) : element.select(selectBy);
-//                            Log.d(Tag, "elements:" + elements);
+                            Log.d(Tag, "elements:" + elements);
                         }
                         if (elements != null && !elements.isEmpty() && selectGet != null) {
                             element = elements.get(Integer.parseInt(selectGet));
@@ -344,6 +337,14 @@ public class Filter {
                     case "trim":
                         if (str != null) str = str.trim();
 //                        Log.d(Tag, "去空后:" + str);
+                        break;
+                    case "split":
+                        String by = step.getString("by");
+                        String get = step.getString("get");
+                        if (str != null && by != null) {
+                            str = str.split(by)[Integer.parseInt(get)];
+                        }
+//                        Log.d(Tag, "分割获取后:" + str);
                         break;
                 }
             }

@@ -52,9 +52,8 @@ public class BookGetter extends Service {
             boolean isLocal = intent.getBooleanExtra("isLocal", true);
             int platformID = intent.getIntExtra("platformID", -1);
             String bookName = intent.getStringExtra("bookName");
-            String bookCode = intent.getStringExtra("bookCode");
             String bookUri = intent.getStringExtra("bookUri");
-            Log.d(Tag, "bookName:" + bookName + " bookCode:" + bookCode);
+            Log.d(Tag,  "local:" + isLocal + " pID:" + platformID + " book:" + bookName);
 
             pdb = PlatformDB.getInstance(this, Constants.DB_PLATFORM);
             List<PlatformItem> platformList = pdb.queryAll(Constants.TAB_PLATFORM);
@@ -69,10 +68,10 @@ public class BookGetter extends Service {
             } else {
                 if (platformID != -1) {
                     PlatformItem platformItem = platformList.get(platformID);
-                    getHtml(this, platformItem, bookName, bookCode);
+                    getHtml(this, platformItem, bookName);
                 } else {
                     for (PlatformItem platformItem : platformList) {
-                        getHtml(this, platformItem, bookName, bookCode);
+                        getHtml(this, platformItem, bookName);
                     }
                 }
             }
@@ -86,20 +85,14 @@ public class BookGetter extends Service {
      * @param context 上下文
      * @param platformItem 平台
      * @param bookName 书名名称
-     * @param bookCode 书籍代码
      */
-    private void getHtml(Context context, PlatformItem platformItem, String bookName, String bookCode) {
+    private void getHtml(Context context, PlatformItem platformItem, String bookName) {
         Log.d(Tag, "path:" + platformItem.getSearchPath());
-        if (bookCode == null && platformItem.getSearchPath().endsWith("index.php")) {
+        if (platformItem.getSearchPath().endsWith("index.php")) {
             postHtml(platformItem, bookName);
             return;
         }
-        String url = platformItem.getPlatformUrl();
-        if (bookCode != null) {
-            url = url + bookCode;
-        } else {
-            url = url + platformItem.getSearchPath() + bookName;
-        }
+        String url = platformItem.getPlatformUrl()+ platformItem.getSearchPath() + bookName;
         Log.d("url", url);
         String cookie = platformItem.getPlatformCookie();
         if (cookie.contains("timeLong")) {
@@ -159,8 +152,7 @@ public class BookGetter extends Service {
      */
     private void postHtml(PlatformItem platformItem, String bookName) {
         Log.d(Tag, "进入POST流程");
-        String url = platformItem.getPlatformUrl();
-        url = url +  platformItem.getSearchPath();
+        String url = platformItem.getPlatformUrl() + platformItem.getSearchPath();
         Log.d(Tag, "url:" + url);
         OkHttpClient okHttpClient = new OkHttpClient();
         //注意：FormBody 类已经内置了静态常量来表示这个body的数据内容类型属于 application/x-www-form-urlencoded
